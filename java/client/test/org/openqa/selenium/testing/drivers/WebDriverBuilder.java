@@ -45,7 +45,12 @@ public class WebDriverBuilder implements Supplier<WebDriver> {
 
   private static Set<WebDriver> managedDrivers = new HashSet<>();
   static {
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> managedDrivers.forEach(WebDriver::quit)));
+    Runtime.getRuntime().addShutdownHook(new Thread( () -> {
+      try {
+        managedDrivers.forEach(WebDriver::quit);
+      } catch (Exception a ) {
+      }
+    }));
   }
 
   private static Map<Browser, Supplier<Capabilities>> capabilitySuppliers =

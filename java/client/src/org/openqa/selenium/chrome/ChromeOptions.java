@@ -77,6 +77,9 @@ public class ChromeOptions extends MutableCapabilities {
   public static final String CAPABILITY = "goog:chromeOptions";
 
   private String binary;
+  private String androidPackage;
+  private String androidActivity;
+  private String androidProcess;
   private List<String> args = new ArrayList<>();
   private List<File> extensionFiles = new ArrayList<>();
   private List<String> extensions = new ArrayList<>();
@@ -115,6 +118,36 @@ public class ChromeOptions extends MutableCapabilities {
     binary = checkNotNull(path);
     return this;
   }
+
+  /**
+   * Sets the Android package name for Chrome or a WebView app. The package should already exist
+   * on the Android device.
+   *
+   * @param package_name Package name for Chrome or a WebView app
+   */
+  public void setAndroidPackage(String package_name) {
+    androidPackage = checkNotNull(package_name);
+  }
+
+  /**
+   * Sets the name of the Activity hosting the WebView under test.
+   *
+   * @param package_name Android Activity class name
+   */
+  public void setAndroidActivity(String activity_name) {
+    androidActivity = checkNotNull(activity_name);
+  }
+
+  /**
+   * Sets the process name for the Activity hosting the WebView under test.
+   *
+   * @param package_name Android process name
+   */
+  public void setAndroidProcess(String process_name) {
+    androidProcess = checkNotNull(process_name);
+  }
+
+  /**
 
   /**
    * @param arguments The arguments to use when starting Chrome.

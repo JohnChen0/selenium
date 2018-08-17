@@ -65,12 +65,9 @@ public class TestChromeDriver extends RemoteWebDriver implements WebStorage, Loc
   private static URL getServiceUrl() {
     try {
       if (service == null && !SauceDriver.shouldUseSauce()) {
-        Path logFile = Files.createTempFile("chromedriver", ".log");
         service = new ChromeDriverService.Builder()
             .withVerbose(true)
-            .withLogFile(logFile.toFile())
             .build();
-        LOG.info("chromedriver will log to " + logFile);
         service.start();
         // Fugly.
         Runtime.getRuntime().addShutdownHook(new Thread(() -> service.stop()));
@@ -84,13 +81,38 @@ public class TestChromeDriver extends RemoteWebDriver implements WebStorage, Loc
   private static Capabilities chromeWithCustomCapabilities(Capabilities originalCapabilities) {
     ChromeOptions options = new ChromeOptions();
     options.addArguments("disable-extensions", "disable-infobars", "disable-breakpad");
-    Map<String, Object> prefs = new HashMap<>();
-    prefs.put("exit_type", "None");
-    prefs.put("exited_cleanly", true);
-    options.setExperimentalOption("prefs", prefs);
+    String androidPackage = System.getProperty("webdriver.chrome.android_package");
+
+    if (androidPackage == null) {
+      Map<String, Object> prefs = new HashMap<>();
+      prefs.put("exit_type", "None");
+      prefs.put("exited_cleanly", true);
+      options.setExperimentalOption("prefs", prefs);
+    }
+
     String chromePath = System.getProperty("webdriver.chrome.binary");
+
     if (chromePath != null) {
       options.setBinary(new File(chromePath));
+    }
+
+    if (androidPackage != null) {
+      options.setExperimentalOption("androidPackage", androidPackage);
+      options.setAndroidPackage(androidPackage);
+    }
+
+    String androidActivity = System.getProperty("webdriver.chrome.android_activity");
+
+    if (androidActivity != null) {
+      options.setExperimentalOption("androidActivity", androidActivity);
+      options.setAndroidActivity(androidActivity);
+    }
+
+    String androidProcess = System.getProperty("webdriver.chrome.android_process");
+
+    if (androidProcess != null) {
+      options.setExperimentalOption("androidProcess", androidProcess);
+      options.setAndroidProcess(androidProcess);
     }
 
     if (originalCapabilities != null) {
