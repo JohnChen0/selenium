@@ -87,35 +87,46 @@ public class TestIgnorance {
   }
 
   public boolean isIgnored(Description method) {
+
     String name = method.getTestClass().getSimpleName() + "." + method.getMethodName();
     String filter = System.getProperty("filter", ".*");
     String[] patternGroups = filter.split("-");
     String[] positivePatterns = patternGroups[0].split(":");
     String[] negativePatterns = new String[0];
 
-    if (patternGroups.length > 1)
-    {
+    if (patternGroups.length > 1) {
       negativePatterns = patternGroups[1].split(":");
-    }
 
-    for (int i = 0; i < negativePatterns.length; i++)
-    {
-      if (name.matches(negativePatterns[i]))
-      {
-        return true;
+      for (int i = 0; i < negativePatterns.length; i++) {
+        if (name.matches(negativePatterns[i])) {
+          return true;
+        }
       }
     }
 
-    for (int i = 0; i < positivePatterns.length; i++)
-    {
-      if (name.matches(positivePatterns[i]))
-      {
-        return false;
+    for (int i = 0; i < positivePatterns.length; i++) {
+      if (name.matches(positivePatterns[i])) {
+
+        boolean ignored = ignoreComparator.shouldIgnore(method.getTestClass().getAnnotation(IgnoreList.class)) ||
+                          ignoreComparator.shouldIgnore(method.getTestClass().getAnnotation(Ignore.class)) ||
+                          ignoreComparator.shouldIgnore(method.getAnnotation(IgnoreList.class)) ||
+                          ignoreComparator.shouldIgnore(method.getAnnotation(Ignore.class));
+
+        ignored |= isIgnoredBecauseOfJUnit4Ignore(method.getTestClass().getAnnotation(org.junit.Ignore.class));
+        ignored |= isIgnoredBecauseOfJUnit4Ignore(method.getAnnotation(org.junit.Ignore.class));
+
+        if (Boolean.getBoolean("ignored_only")) {
+          ignored = !ignored;
+        }
+
+        ignored |= isIgnoredBecauseOfNativeEvents(method.getTestClass().getAnnotation(NativeEventsRequired.class));
+        ignored |= isIgnoredBecauseOfNativeEvents(method.getAnnotation(NativeEventsRequired.class));
+        ignored |= isIgnoredDueToEnvironmentVariables(method);
+        ignored |= isIgnoredDueToBeingOnSauce(method);
+
+        return ignored;
       }
-
-      return true;
     }
-
     return true;
   }
 
