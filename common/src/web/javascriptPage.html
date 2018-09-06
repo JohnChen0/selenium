@@ -18,7 +18,7 @@
             document.getElementById('resultParagraph').innerHTML += message + " ";
         }
 
-        function register(message) {
+        function registerMessage(message) {
           if (!seen[message]) {
             appendMessage(message);
             seen[message] = true;
@@ -161,8 +161,8 @@
            	onclick="appendMessage('click')"
            	onmousedown="appendMessage('mousedown ')" 
            	onmouseup="appendMessage('mouseup ')"
-            onmouseover="register('mouseover ')"
-            onmousemove="register('mousemove ')"
+            onmouseover="registerMessage('mouseover ')"
+            onmousemove="registerMessage('mousemove ')"
     >
         <b>Go somewhere</b>
     </button>

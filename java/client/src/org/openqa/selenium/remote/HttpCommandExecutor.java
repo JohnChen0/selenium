@@ -64,6 +64,7 @@ import static org.apache.http.protocol.ExecutionContext.HTTP_TARGET_HOST;
 import static org.openqa.selenium.remote.DriverCommand.*;
 
 public class HttpCommandExecutor implements CommandExecutor, NeedsLocalLogs {
+  private static final int SO_TIMEOUT = Integer.parseInt(System.getProperty("http.socket.timeout", "60")) * 1000;
 
   private static final int MAX_REDIRECTS = 10;
 
@@ -290,6 +291,11 @@ public class HttpCommandExecutor implements CommandExecutor, NeedsLocalLogs {
       if (httpMethod instanceof HttpGet)  {
         httpMethod.addHeader("Cache-Control", "no-cache");
       }
+
+      // Set the timeout for waiting response from server side.
+      HttpParams params = new BasicHttpParams();
+      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, SO_TIMEOUT);
+      httpMethod.setParams(params);
 
       log(LogType.PROFILER, new HttpProfilerLogEntry(command.getName(), true));
       HttpResponse response = fallBackExecute(context, httpMethod);

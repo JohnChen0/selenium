@@ -71,6 +71,9 @@ public class ChromeOptions {
   public static final String CAPABILITY = "chromeOptions";
 
   private String binary;
+  private String androidPackage;
+  private String androidActivity;
+  private String androidProcess;
   private List<String> args = Lists.newArrayList();
   private List<File> extensionFiles = Lists.newArrayList();
   private Map<String, Object> experimentalOptions = Maps.newHashMap();
@@ -95,6 +98,34 @@ public class ChromeOptions {
    */
   public void setBinary(String path) {
     binary = checkNotNull(path);
+  }
+
+  /**
+   * Sets the Android package name for Chrome or a WebView app. The package should already exist
+   * on the Android device.
+   *
+   * @param package_name Package name for Chrome or a WebView app
+   */
+  public void setAndroidPackage(String package_name) {
+    androidPackage = checkNotNull(package_name);
+  }
+
+  /**
+   * Sets the name of the Activity hosting the WebView under test.
+   *
+   * @param package_name Android Activity class name
+   */
+  public void setAndroidActivity(String activity_name) {
+    androidActivity = checkNotNull(activity_name);
+  }
+
+  /**
+   * Sets the process name for the Activity hosting the WebView under test.
+   *
+   * @param package_name Android process name
+   */
+  public void setAndroidProcess(String process_name) {
+    androidProcess = checkNotNull(process_name);
   }
 
   /**
@@ -174,6 +205,18 @@ public class ChromeOptions {
 
     if (binary != null) {
       options.put("binary", binary);
+    }
+
+    if (androidPackage != null) {
+      options.put("androidPackage", androidPackage);
+    }
+
+    if (androidActivity != null) {
+      options.put("androidActivity", androidActivity);
+    }
+
+    if (androidProcess != null) {
+      options.put("androidProcess", androidProcess);
     }
 
     options.put("args", ImmutableList.copyOf(args));

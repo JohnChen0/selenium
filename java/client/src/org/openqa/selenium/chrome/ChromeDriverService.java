@@ -168,6 +168,7 @@ public class ChromeDriverService extends DriverService {
         ImmutableList.Builder<String> argsBuilder = ImmutableList.builder();
         argsBuilder.add(String.format("--port=%d", port));
         if (logFile != null) {
+          argsBuilder.add("--verbose");
           argsBuilder.add(String.format("--log-path=%s", logFile.getAbsolutePath()));
         }
 

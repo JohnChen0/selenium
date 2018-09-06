@@ -92,8 +92,28 @@ public class TestIgnorance {
     return ignored;
   }
 
-  // JUnit 4
   public boolean isIgnored(FrameworkMethod method, Object test) {
+    String name = test.getClass().getSimpleName() + "." + method.getName();
+    String filter = System.getProperty("filter", ".*");
+    String[] patternGroups = filter.split("-");
+    String[] positivePatterns = patternGroups[0].split(":");
+    String[] negativePatterns = new String[0];
+    if (patternGroups.length > 1)
+      negativePatterns = patternGroups[1].split(":");
+
+    for (int i = 0; i < negativePatterns.length; i++) {
+      if (name.matches(negativePatterns[i]))
+        return true;
+    }
+    for (int i = 0; i < positivePatterns.length; i++) {
+      if (name.matches(positivePatterns[i]))
+        return false;
+    }
+    return true;
+  }
+
+  // JUnit 4
+  public boolean isIgnoredOld(FrameworkMethod method, Object test) {
     boolean ignored = ignoreComparator.shouldIgnore(test.getClass().getAnnotation(Ignore.class)) ||
                       ignoreComparator.shouldIgnore(method.getMethod().getAnnotation(Ignore.class));
 

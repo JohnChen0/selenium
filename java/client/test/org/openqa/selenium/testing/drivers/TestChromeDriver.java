@@ -76,6 +76,18 @@ public class TestChromeDriver extends RemoteWebDriver implements TakesScreenshot
     if (chromePath != null) {
       options.setBinary(new File(chromePath));
     }
+    String androidPackage = System.getProperty("webdriver.chrome.android_package");
+    if (androidPackage != null) {
+      options.setAndroidPackage(androidPackage);
+    }
+    String androidActivity = System.getProperty("webdriver.chrome.android_activity");
+    if (androidActivity != null) {
+      options.setAndroidActivity(androidActivity);
+    }
+    String androidProcess = System.getProperty("webdriver.chrome.android_process");
+    if (androidProcess != null) {
+      options.setAndroidProcess(androidProcess);
+    }
 
     DesiredCapabilities capabilities = DesiredCapabilities.chrome();
     capabilities.setCapability(ChromeOptions.CAPABILITY, options);
@@ -83,7 +95,7 @@ public class TestChromeDriver extends RemoteWebDriver implements TakesScreenshot
     if (originalCapabilities != null) {
       capabilities.merge(originalCapabilities);
     }
-    
+
     return capabilities;
   }
 
