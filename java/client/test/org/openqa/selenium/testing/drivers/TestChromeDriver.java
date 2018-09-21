@@ -69,6 +69,7 @@ public class TestChromeDriver extends RemoteWebDriver implements WebStorage, Loc
             .withVerbose(true)
             .build();
         service.start();
+        System.clearProperty("webdriver.chrome.logfile");
         // Fugly.
         Runtime.getRuntime().addShutdownHook(new Thread(() -> service.stop()));
       }
