@@ -561,14 +561,8 @@ bot.dom.isShown = function(elem, opt_ignoreOpacity) {
       do {
         parent = bot.dom.getParentNodeInComposedDom(e);
         if (parent instanceof ShadowRoot) {
-          if (parent.host.shadowRoot != parent) {
-            // There is a younger shadow root, which will take precedence over
-            // the shadow this element is in, thus this element won't be
-            // displayed.
-            return false;
-          } else {
-            parent = parent.host;
-          }
+          // For backward compatibility, treat all shadow roots as shown.
+          return true;
         } else if (parent && (parent.nodeType == goog.dom.NodeType.DOCUMENT ||
             parent.nodeType == goog.dom.NodeType.DOCUMENT_FRAGMENT)) {
           parent = null;

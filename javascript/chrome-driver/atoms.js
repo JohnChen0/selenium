@@ -142,6 +142,12 @@ webdriver.chrome.scrollIntoView_ = function(elem, region, center) {
 
   offset = goog.style.getClientPosition(elem);
   var windowSize = goog.dom.getDomHelper(elem).getViewportSize();
+  // Chrome 61.0.3138 and above uses doc.documentElement, while older
+  // Chrome uses doc.body. We can't reliably detect Chrome version because
+  // userAgent string can be overridden, so just call scrollHelper on both.
+  // TBD(johnchen@chromium.org): Remove doc.body when we stop supporting
+  // Chrome 61.0.3137.
+  scrollHelper(doc.documentElement, windowSize, offset, region, center);
   scrollHelper(doc.body, windowSize, offset, region, center);
 };
 
