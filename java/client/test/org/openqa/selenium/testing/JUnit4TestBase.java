@@ -31,6 +31,7 @@ import org.junit.runners.model.Statement;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.Pages;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.environment.GlobalTestEnvironment;
 import org.openqa.selenium.environment.InProcessTestEnvironment;
 import org.openqa.selenium.environment.TestEnvironment;
@@ -163,10 +164,25 @@ public abstract class JUnit4TestBase {
       return nyi.anyMatch(driver -> matches(browser, new Driver[]{driver.value()}));
     }
 
+    private boolean isReadyToRun(Description description) {
+      String name = description.getTestClass().getSimpleName() + "." + description.getMethodName();
+      String readyToRunFilter = System.getProperty("readyToRun");
+      if (readyToRunFilter != null) {
+        String[] readyToRunTests = readyToRunFilter.split(":");
+        for (int i = 0; i < readyToRunTests.length; i++) {
+          if (name.matches(readyToRunTests[i])) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
     @Override
     public Statement apply(final Statement base, final Description description) {
-      if (notImplemented(description.getAnnotation(NotYetImplementedList.class)) ||
-          notImplemented(description.getAnnotation(NotYetImplemented.class))) {
+      if ((notImplemented(description.getAnnotation(NotYetImplementedList.class)) ||
+          notImplemented(description.getAnnotation(NotYetImplemented.class)))
+          && !isReadyToRun(description)) {
         return new Statement() {
           @Override
           public void evaluate() throws Throwable {
@@ -207,10 +223,32 @@ public abstract class JUnit4TestBase {
 
   private static WebDriver actuallyCreateDriver() {
     WebDriver driver = storedDriver.get();
+    // If the driver is left in a bad state, create a new one.
+    // This happens on Android after any test that creates its own driver.
+    // Since only one instance of Chrome can run on Android at a time, the
+    // stored driver's browser is destroyed.
+    try
+    {
+      if (driver != null)
+      {
+        driver.getCurrentUrl();
+      }
+    }
+    catch (WebDriverException e)
+    {
+      try
+      {
+        driver.quit();
+      }
+      catch (RuntimeException ignored)
+      {
+        System.exit(1);
+      }
+      driver = null;
+    }
 
     if (driver == null ||
         (driver instanceof RemoteWebDriver && ((RemoteWebDriver)driver).getSessionId() == null)) {
-      StaticResources.ensureAvailable();
       driver = new WebDriverBuilder().get();
       storedDriver.set(driver);
     }
@@ -219,6 +257,29 @@ public abstract class JUnit4TestBase {
 
   private static WebDriver actuallyCreateDriver(Capabilities capabilities) {
     WebDriver driver = storedDriver.get();
+    // If the driver is left in a bad state, create a new one.
+    // This happens on Android after any test that creates its own driver.
+    // Since only one instance of Chrome can run on Android at a time, the
+    // stored driver's browser is destroyed.
+    try
+    {
+      if (driver != null)
+      {
+        driver.getCurrentUrl();
+      }
+    }
+    catch (WebDriverException e)
+    {
+      try
+      {
+        driver.quit();
+      }
+      catch (RuntimeException ignored)
+      {
+        System.exit(1);
+      }
+      driver = null;
+    }
 
     if (driver == null ||
         (driver instanceof RemoteWebDriver && ((RemoteWebDriver)driver).getSessionId() == null)) {
