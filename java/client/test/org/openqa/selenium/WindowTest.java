@@ -102,7 +102,7 @@ public class WindowTest extends JUnit4TestBase {
       // off-screen. Therefore, try to stay on-screen. Hopefully you have more than 210 px,
       // or this may fail.
       window.setSize(new Dimension(200, 200));
-      Point targetPosition = new Point(position.x + 10, position.y + 10);
+      Point targetPosition = new Point(position.x + 30, position.y + 30);
       window.setPosition(targetPosition);
 
       wait.until($ -> window.getPosition().x == targetPosition.x);
