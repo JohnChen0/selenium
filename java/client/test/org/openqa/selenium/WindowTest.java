@@ -107,7 +107,7 @@ public class WindowTest extends JUnit4TestBase {
       // off-screen. Therefore, try to stay on-screen. Hopefully you have more than 210 px,
       // or this may fail.
       window.setSize(new Dimension(200, 200));
-      Point targetPosition = new Point(position.x + 10, position.y + 10);
+      Point targetPosition = new Point(position.x + 30, position.y + 30);
       window.setPosition(targetPosition);
 
       wait.until($ -> window.getPosition().x == targetPosition.x);
@@ -125,7 +125,7 @@ public class WindowTest extends JUnit4TestBase {
     // though others aren't defined in org.openqa.selenium.Platform).
     assumeFalse(TestUtilities.getEffectivePlatform(driver).is(ANDROID));
 
-    changeSizeTo(new Dimension(640, 323));
+    changeSizeTo(new Dimension(640, 398));
     enlargeBy(WebDriver.Window::maximize);
   }
 
@@ -139,7 +139,7 @@ public class WindowTest extends JUnit4TestBase {
     assumeFalse(TestUtilities.getEffectivePlatform(driver).is(ANDROID));
 
     driver.get(pages.framesetPage);
-    changeSizeTo(new Dimension(640, 324));
+    changeSizeTo(new Dimension(640, 399));
 
     driver.switchTo().frame("fourth");
     enlargeBy(WebDriver.Window::maximize);
@@ -155,7 +155,7 @@ public class WindowTest extends JUnit4TestBase {
     assumeFalse(TestUtilities.getEffectivePlatform(driver).is(ANDROID));
 
     driver.get(pages.iframePage);
-    changeSizeTo(new Dimension(640, 325));
+    changeSizeTo(new Dimension(640, 400));
 
     driver.switchTo().frame("iframe1-name");
     enlargeBy(WebDriver.Window::maximize);
@@ -170,7 +170,7 @@ public class WindowTest extends JUnit4TestBase {
     // though others aren't defined in org.openqa.selenium.Platform).
     assumeFalse(TestUtilities.getEffectivePlatform(driver).is(ANDROID));
 
-    changeSizeTo(new Dimension(640, 323));
+    changeSizeTo(new Dimension(640, 398));
     enlargeBy(WebDriver.Window::fullscreen);
   }
 
@@ -185,7 +185,7 @@ public class WindowTest extends JUnit4TestBase {
     assumeFalse(TestUtilities.getEffectivePlatform(driver).is(ANDROID));
 
     driver.get(pages.framesetPage);
-    changeSizeTo(new Dimension(640, 324));
+    changeSizeTo(new Dimension(640, 399));
 
     driver.switchTo().frame("fourth");
     enlargeBy(WebDriver.Window::fullscreen);
@@ -202,7 +202,7 @@ public class WindowTest extends JUnit4TestBase {
     assumeFalse(TestUtilities.getEffectivePlatform(driver).is(ANDROID));
 
     driver.get(pages.iframePage);
-    changeSizeTo(new Dimension(640, 325));
+    changeSizeTo(new Dimension(640, 400));
 
     driver.switchTo().frame("iframe1-name");
     enlargeBy(WebDriver.Window::fullscreen);

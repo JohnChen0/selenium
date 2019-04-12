@@ -49,8 +49,12 @@ public class WebDriverBuilder implements Supplier<WebDriver> {
   private static LinkedList<Runnable> shutdownActions = new LinkedList<>();
   private static Set<WebDriver> managedDrivers = new HashSet<>();
   static {
-    shutdownActions.add(() -> managedDrivers.forEach(WebDriver::quit));
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdownActions.forEach(Runnable::run)));
+    Runtime.getRuntime().addShutdownHook(new Thread( () -> {
+      try {
+        managedDrivers.forEach(WebDriver::quit);
+      } catch (Exception a ) {
+      }
+    }));
   }
 
   static void addShutdownAction(Runnable action) {

@@ -63,20 +63,44 @@ public class TestIgnorance {
   }
 
   public boolean isIgnored(Description method) {
-    boolean ignored = ignoreComparator.shouldIgnore(method.getTestClass().getAnnotation(IgnoreList.class)) ||
-                      ignoreComparator.shouldIgnore(method.getTestClass().getAnnotation(Ignore.class)) ||
-                      ignoreComparator.shouldIgnore(method.getAnnotation(IgnoreList.class)) ||
-                      ignoreComparator.shouldIgnore(method.getAnnotation(Ignore.class));
 
-    ignored |= isIgnoredBecauseOfJUnit4Ignore(method.getTestClass().getAnnotation(org.junit.Ignore.class));
-    ignored |= isIgnoredBecauseOfJUnit4Ignore(method.getAnnotation(org.junit.Ignore.class));
-    if (Boolean.getBoolean("ignored_only")) {
-      ignored = !ignored;
+    String name = method.getTestClass().getSimpleName() + "." + method.getMethodName();
+    String filter = System.getProperty("filter", ".*");
+    String[] patternGroups = filter.split("-");
+    String[] positivePatterns = patternGroups[0].split(":");
+    String[] negativePatterns = new String[0];
+
+    if (patternGroups.length > 1) {
+      negativePatterns = patternGroups[1].split(":");
+
+      for (int i = 0; i < negativePatterns.length; i++) {
+        if (name.matches(negativePatterns[i])) {
+          return true;
+        }
+      }
     }
 
-    ignored |= isIgnoredDueToEnvironmentVariables(method);
+    for (int i = 0; i < positivePatterns.length; i++) {
+      if (name.matches(positivePatterns[i])) {
 
-    return ignored;
+        boolean ignored = ignoreComparator.shouldIgnore(method.getTestClass().getAnnotation(IgnoreList.class)) ||
+                          ignoreComparator.shouldIgnore(method.getTestClass().getAnnotation(Ignore.class)) ||
+                          ignoreComparator.shouldIgnore(method.getAnnotation(IgnoreList.class)) ||
+                          ignoreComparator.shouldIgnore(method.getAnnotation(Ignore.class));
+
+        ignored |= isIgnoredBecauseOfJUnit4Ignore(method.getTestClass().getAnnotation(org.junit.Ignore.class));
+        ignored |= isIgnoredBecauseOfJUnit4Ignore(method.getAnnotation(org.junit.Ignore.class));
+
+        if (Boolean.getBoolean("ignored_only")) {
+          ignored = !ignored;
+        }
+
+        ignored |= isIgnoredDueToEnvironmentVariables(method);
+
+        return ignored;
+      }
+    }
+    return true;
   }
 
   private boolean isIgnoredBecauseOfJUnit4Ignore(org.junit.Ignore annotation) {

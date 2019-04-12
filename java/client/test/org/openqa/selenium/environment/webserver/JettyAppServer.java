@@ -113,10 +113,6 @@ public class JettyAppServer implements AppServer {
     Path webSrc = locate("common/src/web");
     ServletContextHandler defaultContext = addResourceHandler(
         DEFAULT_CONTEXT_PATH, webSrc);
-    ServletContextHandler jsContext = addResourceHandler(
-        JS_SRC_CONTEXT_PATH, locate("javascript"));
-    addResourceHandler(CLOSURE_CONTEXT_PATH, locate("third_party/closure/goog"));
-    addResourceHandler(THIRD_PARTY_JS_CONTEXT_PATH, locate("third_party/js"));
 
     TemporaryFilesystem tempFs = TemporaryFilesystem.getDefaultTmpFS();
     tempPageDir = tempFs.createTempDir("pages", "test");
