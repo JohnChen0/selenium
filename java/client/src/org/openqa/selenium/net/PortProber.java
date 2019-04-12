@@ -50,7 +50,7 @@ public class PortProber {
   }
 
   public static final int HIGHEST_PORT = 65535;
-  public static final int START_OF_USER_PORTS = 1024;
+  public static final int START_OF_USER_PORTS = 6700;
 
   private PortProber() {
     // Utility class
