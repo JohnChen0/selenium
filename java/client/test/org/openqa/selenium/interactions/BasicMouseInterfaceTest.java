@@ -373,7 +373,7 @@ public class BasicMouseInterfaceTest extends JUnit4TestBase {
     driver.get(pages.mouseTrackerPage);
 
     WebElement trackerDiv = driver.findElement(By.id("mousetracker"));
-    new Actions(driver).moveToElement(trackerDiv, 95, 195).perform();
+    new Actions(driver).moveToElement(trackerDiv, 45, -5).perform();
 
     WebElement reporter = driver.findElement(By.id("status"));
 
@@ -389,7 +389,7 @@ public class BasicMouseInterfaceTest extends JUnit4TestBase {
     driver.get(pages.mouseTrackerPage);
 
     WebElement trackerDiv = driver.findElement(By.id("mousetracker"));
-    new Actions(driver).moveToElement(trackerDiv, 0, 0).perform();
+    new Actions(driver).moveToElement(trackerDiv, -50, -200).perform();
 
     WebElement reporter = driver.findElement(By.id("status"));
 
@@ -430,15 +430,16 @@ public class BasicMouseInterfaceTest extends JUnit4TestBase {
     int shiftX = redboxPosition.getX() - greenboxPosition.getX();
     int shiftY = redboxPosition.getY() - greenboxPosition.getY();
 
-    new Actions(driver).moveToElement(greenbox, 2, 2).perform();
+    Dimension greenBoxSize = greenbox.getSize();
 
+    new Actions(driver).moveToElement(greenbox, 2 - greenBoxSize.getWidth()/2, 2 - greenBoxSize.getHeight()/2).perform();
     shortWait.until(attributeToBe(redbox, "background-color", Colors.GREEN.getColorValue().asRgba()));
 
-    new Actions(driver).moveToElement(greenbox, 2, 2)
+    new Actions(driver).moveToElement(greenbox, 2 - greenBoxSize.getWidth()/2, 2 - greenBoxSize.getHeight()/2)
       .moveByOffset(shiftX, shiftY).perform();
     shortWait.until(attributeToBe(redbox, "background-color", Colors.RED.getColorValue().asRgba()));
 
-    new Actions(driver).moveToElement(greenbox, 2, 2)
+    new Actions(driver).moveToElement(greenbox, 2 - greenBoxSize.getWidth()/2, 2 - greenBoxSize.getHeight()/2)
       .moveByOffset(shiftX, shiftY)
       .moveByOffset(-shiftX, -shiftY).perform();
 
@@ -457,7 +458,7 @@ public class BasicMouseInterfaceTest extends JUnit4TestBase {
     WebElement redbox = driver.findElement(By.id("redbox"));
     Dimension size = redbox.getSize();
 
-    new Actions(driver).moveToElement(greenbox, 1, 1).perform();
+    new Actions(driver).moveToElement(greenbox, 1 - size.getWidth()/2, 1 - size.getHeight()/2).perform();
 
     assertThat(Color.fromString(redbox.getCssValue("background-color")))
         .isEqualTo(GREEN.getColorValue());

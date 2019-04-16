@@ -257,6 +257,8 @@ public class BasicKeyboardInterfaceTest extends JUnit4TestBase {
     getBuilder(driver).click(input).sendKeys("abc def").perform();
     wait.until(ExpectedConditions.attributeToBe(input, "value", "abc def"));
 
+    ((Interactive)driver).resetInputState();
+
     getBuilder(driver).click(input)
         .keyDown(Keys.SHIFT)
         .keyDown(Keys.CONTROL)
