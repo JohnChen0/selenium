@@ -457,8 +457,9 @@ public class BasicMouseInterfaceTest extends JUnit4TestBase {
     WebElement greenbox = driver.findElement(By.id("greenbox"));
     WebElement redbox = driver.findElement(By.id("redbox"));
     Dimension size = redbox.getSize();
+    Dimension greenBoxSize = greenbox.getSize();
 
-    new Actions(driver).moveToElement(greenbox, 1 - size.getWidth()/2, 1 - size.getHeight()/2).perform();
+    new Actions(driver).moveToElement(greenbox, 1- greenBoxSize.getWidth()/2, 1- greenBoxSize.getHeight()/2).perform();
 
     assertThat(Color.fromString(redbox.getCssValue("background-color")))
         .isEqualTo(GREEN.getColorValue());
@@ -469,7 +470,7 @@ public class BasicMouseInterfaceTest extends JUnit4TestBase {
 
     // IE8 (and *only* IE8) requires a move of 2 pixels. All other browsers
     // would be happy with 1.
-    new Actions(driver).moveToElement(redbox, size.getWidth() + 2, size.getHeight() + 2)
+    new Actions(driver).moveToElement(redbox, size.getWidth()/2 + 2, size.getHeight()/2 + 2)
         .perform();
 
     wait.until(attributeToBe(redbox, "background-color", Colors.GREEN.getColorValue().asRgba()));

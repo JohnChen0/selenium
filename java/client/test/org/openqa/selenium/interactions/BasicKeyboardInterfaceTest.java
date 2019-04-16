@@ -231,6 +231,8 @@ public class BasicKeyboardInterfaceTest extends JUnit4TestBase {
 
     shortWait.until(ExpectedConditions.attributeToBe(input, "value", "abc def"));
 
+    ((Interactive)driver).resetInputState();
+
     getBuilder(driver).click(input)
         .keyDown(Keys.SHIFT)
         .sendKeys(Keys.LEFT)
