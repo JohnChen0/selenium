@@ -69,7 +69,7 @@ namespace OpenQA.Selenium.IE
     {
         /// <summary>
         /// Gets the name of the capability used to store IE options in
-        /// a <see cref="DesiredCapabilities"/> object.
+        /// an <see cref="ICapabilities"/> object.
         /// </summary>
         public static readonly string Capability = "se:ieOptions";
 
@@ -99,7 +99,6 @@ namespace OpenQA.Selenium.IE
         private bool forceShellWindowsApi;
         private bool usePerProcessProxy;
         private bool ensureCleanSession;
-        private bool validateCookieDocumentType = true;
         private bool enableFullPageScreenshot = true;
         private TimeSpan browserAttachTimeout = TimeSpan.MinValue;
         private TimeSpan fileUploadDialogTimeout = TimeSpan.MinValue;

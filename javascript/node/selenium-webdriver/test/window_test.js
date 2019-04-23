@@ -99,6 +99,16 @@ test.suite(function(env) {
     return driver.wait(forPositionToBe(x, y), 1000);
   });
 
+  it('can open a new window', async function() {
+    let originalHandles = await driver.getAllWindowHandles()
+    let originalHandle = await driver.getWindowHandle()
+
+    let newHandle = await driver.switchTo().newWindow()
+
+    assert.equal((await driver.getAllWindowHandles()).length, originalHandles.length + 1)
+    assert.notEqual(originalHandle, newHandle)
+  })
+
   async function changeSizeBy(dx, dy) {
     let {width, height} = await driver.manage().window().getRect();
     width += dx;

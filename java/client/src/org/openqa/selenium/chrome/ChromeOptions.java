@@ -19,20 +19,13 @@ package org.openqa.selenium.chrome;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.openqa.selenium.remote.CapabilityType.ACCEPT_INSECURE_CERTS;
-import static org.openqa.selenium.remote.CapabilityType.PAGE_LOAD_STRATEGY;
-import static org.openqa.selenium.remote.CapabilityType.UNEXPECTED_ALERT_BEHAVIOUR;
-import static org.openqa.selenium.remote.CapabilityType.UNHANDLED_PROMPT_BEHAVIOUR;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 
+import org.openqa.selenium.remote.AbstractDriverOptions;
 import org.openqa.selenium.Capabilities;
-import org.openqa.selenium.MutableCapabilities;
-import org.openqa.selenium.PageLoadStrategy;
-import org.openqa.selenium.Proxy;
 import org.openqa.selenium.SessionNotCreatedException;
-import org.openqa.selenium.UnexpectedAlertBehaviour;
 import org.openqa.selenium.remote.BrowserType;
 import org.openqa.selenium.remote.CapabilityType;
 
@@ -68,7 +61,7 @@ import java.util.stream.Stream;
  *
  * @since Since chromedriver v17.0.963.0
  */
-public class ChromeOptions extends MutableCapabilities {
+public class ChromeOptions extends AbstractDriverOptions<ChromeOptions> {
 
   /**
    * Key used to store a set of ChromeOptions in a {@link Capabilities}
@@ -135,7 +128,7 @@ public class ChromeOptions extends MutableCapabilities {
    * </code></pre>
    *
    * <p>Each argument may contain an option "--" prefix: "--foo" or "foo".
-   * Arguments with an associated value should be delimitted with an "=":
+   * Arguments with an associated value should be delimited with an "=":
    * "foo=bar".
    *
    * @param arguments The arguments to use when starting Chrome.
@@ -207,50 +200,11 @@ public class ChromeOptions extends MutableCapabilities {
     return this;
   }
 
-  /**
-   * Returns the value of an experimental option.
-   *
-   * @param name The option name.
-   * @return The option value, or {@code null} if not set.
-   * @deprecated Getters are not needed in browser Options classes.
-   */
-  @Deprecated
-  public Object getExperimentalOption(String name) {
-    return experimentalOptions.get(checkNotNull(name));
-  }
-
-  public ChromeOptions setPageLoadStrategy(PageLoadStrategy strategy) {
-    setCapability(PAGE_LOAD_STRATEGY, strategy);
-    return this;
-  }
-
-  public ChromeOptions setUnhandledPromptBehaviour(UnexpectedAlertBehaviour behaviour) {
-    setCapability(UNHANDLED_PROMPT_BEHAVIOUR, behaviour);
-    setCapability(UNEXPECTED_ALERT_BEHAVIOUR, behaviour);
-    return this;
-  }
-
-  /**
-   * Returns ChromeOptions with the capability ACCEPT_INSECURE_CERTS set.
-   * @param acceptInsecureCerts
-   * @return ChromeOptions
-   */
-  public ChromeOptions setAcceptInsecureCerts(boolean acceptInsecureCerts) {
-    setCapability(ACCEPT_INSECURE_CERTS, acceptInsecureCerts);
-    return this;
-  }
-
   public ChromeOptions setHeadless(boolean headless) {
     args.remove("--headless");
     if (headless) {
       args.add("--headless");
-      args.add("--disable-gpu");
     }
-    return this;
-  }
-
-  public ChromeOptions setProxy(Proxy proxy) {
-    setCapability(CapabilityType.PROXY, proxy);
     return this;
   }
 

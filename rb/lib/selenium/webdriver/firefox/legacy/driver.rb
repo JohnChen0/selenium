@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Licensed to the Software Freedom Conservancy (SFC) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -28,8 +30,10 @@ module Selenium
         class Driver < WebDriver::Driver
           include DriverExtensions::TakesScreenshot
 
-          def initialize(opts = {})
-            opts[:desired_capabilities] ||= Remote::Capabilities.firefox
+          def initialize(opts = {}) # rubocop:disable Metrics/AbcSize
+            WebDriver.logger.deprecate 'Selenium support for legacy Firefox', 'Firefox via marionette'
+
+            opts[:desired_capabilities] ||= Remote::Capabilities.firefox_legacy
 
             if opts.key? :proxy
               WebDriver.logger.deprecate ':proxy', "Selenium::WebDriver::Remote::Capabilities.firefox(proxy: #{opts[:proxy]})"
@@ -56,7 +60,7 @@ module Selenium
             begin
               super(@bridge, listener: listener)
             rescue
-              @launcher.quit if @launcher
+              @launcher&.quit
               raise
             end
           end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Licensed to the Software Freedom Conservancy (SFC) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -34,8 +36,7 @@ module Selenium
           expect(driver.find_element(id: 'result').text.strip).to be_empty
         end
 
-        # https://github.com/mozilla/geckodriver/issues/646
-        it 'can send keys with shift pressed', except: {browser: %i[firefox safari safari_preview]} do
+        it 'can send keys with shift pressed', except: {browser: %i[safari safari_preview]} do
           driver.navigate.to url_for('javascriptPage.html')
 
           event_input = driver.find_element(id: 'theworks')

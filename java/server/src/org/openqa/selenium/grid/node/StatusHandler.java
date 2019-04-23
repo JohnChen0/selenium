@@ -21,12 +21,12 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableMap;
 
+import org.openqa.selenium.grid.data.NodeStatus;
 import org.openqa.selenium.grid.web.CommandHandler;
 import org.openqa.selenium.json.Json;
 import org.openqa.selenium.remote.http.HttpRequest;
 import org.openqa.selenium.remote.http.HttpResponse;
 
-import java.io.IOException;
 import java.util.Objects;
 
 public class StatusHandler implements CommandHandler {
@@ -40,7 +40,7 @@ public class StatusHandler implements CommandHandler {
   }
 
   @Override
-  public void execute(HttpRequest req, HttpResponse resp) throws IOException {
+  public void execute(HttpRequest req, HttpResponse resp) {
     NodeStatus status = node.getStatus();
 
     ImmutableMap<String, Object> report = ImmutableMap.of(

@@ -18,17 +18,20 @@
 package org.openqa.selenium.grid.router;
 
 import static org.openqa.selenium.grid.web.Routes.combine;
+import static org.openqa.selenium.grid.web.Routes.get;
 import static org.openqa.selenium.grid.web.Routes.matching;
 
 import org.openqa.selenium.grid.distributor.Distributor;
+import org.openqa.selenium.grid.server.W3CCommandHandler;
 import org.openqa.selenium.grid.sessionmap.SessionMap;
 import org.openqa.selenium.grid.web.CommandHandler;
 import org.openqa.selenium.grid.web.HandlerNotFoundException;
 import org.openqa.selenium.grid.web.Routes;
-import org.openqa.selenium.injector.Injector;
 import org.openqa.selenium.json.Json;
+import org.openqa.selenium.remote.http.HttpClient;
 import org.openqa.selenium.remote.http.HttpRequest;
 import org.openqa.selenium.remote.http.HttpResponse;
+import org.openqa.selenium.remote.tracing.DistributedTracer;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -39,31 +42,33 @@ import java.util.function.Predicate;
  */
 public class Router implements Predicate<HttpRequest>, CommandHandler {
 
-  private final Injector injector;
   private final Routes routes;
 
-  public Router(SessionMap sessions, Distributor distributor) {
-    injector = Injector.builder()
-        .register(sessions)
-        .register(distributor)
-        .register(new Json())
-        .build();
-
+  public Router(
+      DistributedTracer tracer,
+      HttpClient.Factory clientFactory,
+      SessionMap sessions,
+      Distributor distributor)
+  {
     routes = combine(
+        get("/status")
+            .using(() -> new GridStatusHandler(new Json(), clientFactory, distributor))
+            .decorateWith(W3CCommandHandler::new),
         matching(sessions).using(sessions),
         matching(distributor).using(distributor),
-        matching(req -> req.getUri().startsWith("/session/")).using(HandleSession.class))
+        matching(req -> req.getUri().startsWith("/session/"))
+            .using(() -> new HandleSession(tracer, clientFactory, sessions)))
         .build();
   }
 
   @Override
   public boolean test(HttpRequest req) {
-    return routes.match(injector, req).isPresent();
+    return routes.match(req).isPresent();
   }
 
   @Override
   public void execute(HttpRequest req, HttpResponse resp) throws IOException {
-    Optional<CommandHandler> handler = routes.match(injector, req);
+    Optional<CommandHandler> handler = routes.match(req);
     if (!handler.isPresent()) {
       throw new HandlerNotFoundException(req);
     }

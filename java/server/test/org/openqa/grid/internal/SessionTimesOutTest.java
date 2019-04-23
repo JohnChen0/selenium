@@ -19,6 +19,7 @@ package org.openqa.grid.internal;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
@@ -63,6 +64,7 @@ public class SessionTimesOutTest {
       super(request, registry);
     }
 
+    @Override
     public void beforeRelease(TestSession session) {
     }
   }
@@ -104,6 +106,7 @@ public class SessionTimesOutTest {
       super(request, registry);
     }
 
+    @Override
     public void beforeRelease(TestSession session) {
       try {
         Thread.sleep(1000);
@@ -148,7 +151,7 @@ public class SessionTimesOutTest {
       newSessionRequest2.process();
       TestSession session2 = newSessionRequest2.getSession();
       assertNotNull(session2);
-      assertFalse(session2.equals(session));
+      assertNotEquals(session2, session);
 
     } finally {
       registry.stop();
@@ -161,6 +164,7 @@ public class SessionTimesOutTest {
       super(request, registry);
     }
 
+    @Override
     public void beforeRelease(TestSession session) {
       throw new NullPointerException();
     }
@@ -183,6 +187,7 @@ public class SessionTimesOutTest {
       final RequestHandler newSessionRequest2 =
           GridHelper.createNewSessionHandler(registry, app1);
       new Thread(new Runnable() {  // Thread safety reviewed
+        @Override
         public void run() {
           // the request should never be processed because the
           // resource is not released by the buggy proxy
@@ -205,6 +210,7 @@ public class SessionTimesOutTest {
       super(request, registry);
     }
 
+    @Override
     public void beforeRelease(TestSession session) {
       session.put("FLAG", true);
       session.put("MustSupportNullValue", null);

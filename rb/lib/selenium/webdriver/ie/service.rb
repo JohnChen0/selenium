@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Licensed to the Software Freedom Conservancy (SFC) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -23,27 +25,21 @@ module Selenium
       #
 
       class Service < WebDriver::Service
-        DEFAULT_PORT = 5555
-        @executable = 'IEDriverServer'.freeze
-        @missing_text = <<-ERROR.gsub(/\n +| {2,}/, ' ').freeze
+        @default_port = 5555
+        @executable = 'IEDriverServer'
+        @missing_text = <<~ERROR
           Unable to find IEDriverServer. Please download the server from
           http://selenium-release.storage.googleapis.com/index.html and place it somewhere on your PATH.
           More info at https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver.
         ERROR
+        @shutdown_supported = true
 
         private
 
-        def start_process
-          @process = build_process(@executable_path, "--port=#{@port}", *@extra_args)
-          @process.start
-        end
-
-        def cannot_connect_error_text
-          "unable to connect to IE server #{@host}:#{@port}"
-        end
-
+        # Note: This processing is deprecated
         def extract_service_args(driver_opts)
           driver_args = super
+          driver_opts = driver_opts.dup
           driver_args << "--log-level=#{driver_opts.delete(:log_level).to_s.upcase}" if driver_opts.key?(:log_level)
           driver_args << "--log-file=#{driver_opts.delete(:log_file)}" if driver_opts.key?(:log_file)
           driver_args << "--implementation=#{driver_opts.delete(:implementation).to_s.upcase}" if driver_opts.key?(:implementation)

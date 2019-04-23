@@ -60,7 +60,7 @@ public class RegistryTest {
       registry.add(p2);
       registry.add(p3);
       registry.add(p4);
-      assertTrue(registry.getAllProxies().size() == 4);
+      assertEquals(4, registry.getAllProxies().size());
     } finally {
       registry.stop();
     }
@@ -84,7 +84,7 @@ public class RegistryTest {
       registry.add(p3);
       registry.add(p4);
       registry.add(p4);
-      assertTrue(registry.getAllProxies().size() == 4);
+      assertEquals(4, registry.getAllProxies().size());
     } finally {
       registry.stop();
     }
@@ -199,6 +199,7 @@ public class RegistryTest {
 
     }
 
+    @Override
     public void beforeRegistration() {
       int registrationTime = randomGenerator.nextInt(1000);
       if (registrationTime > 900) {

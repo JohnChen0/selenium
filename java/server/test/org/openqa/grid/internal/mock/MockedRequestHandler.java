@@ -36,12 +36,13 @@ public class MockedRequestHandler extends RequestHandler {
     super(request, response, registry);
   }
 
+  @Override
   public void setSession(TestSession session) {
     super.setSession(session);
   }
 
   @Override
-  protected void forwardRequest(TestSession session, RequestHandler handler) throws IOException {
+  protected void forwardRequest(TestSession session, RequestHandler handler) {
     // do nothing
   }
 

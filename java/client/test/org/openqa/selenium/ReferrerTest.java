@@ -22,6 +22,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.openqa.selenium.remote.CapabilityType.PROXY;
 import static org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElementLocated;
 import static org.openqa.selenium.support.ui.ExpectedConditions.titleIs;
+import static org.openqa.selenium.testing.drivers.Browser.CHROME;
+import static org.openqa.selenium.testing.drivers.Browser.EDGE;
 import static org.openqa.selenium.testing.drivers.Browser.FIREFOX;
 import static org.openqa.selenium.testing.drivers.Browser.IE;
 import static org.openqa.selenium.testing.drivers.Browser.MARIONETTE;
@@ -39,12 +41,14 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
+import org.openqa.selenium.environment.webserver.JettyAppServer;
 import org.openqa.selenium.net.PortProber;
 import org.openqa.selenium.net.UrlChecker;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.testing.Ignore;
 import org.openqa.selenium.testing.JUnit4TestBase;
 import org.openqa.selenium.testing.NeedsLocalEnvironment;
+import org.openqa.selenium.testing.NotYetImplemented;
 import org.openqa.selenium.testing.drivers.WebDriverBuilder;
 import org.seleniumhq.jetty9.server.Handler;
 import org.seleniumhq.jetty9.server.Request;
@@ -114,6 +118,7 @@ public class ReferrerTest extends JUnit4TestBase {
    * does not have a proxy configured.
    */
   @Test
+  @NotYetImplemented(EDGE)
   @NeedsLocalEnvironment
   public void basicHistoryNavigationWithoutAProxy() {
     testServer1.start();
@@ -134,6 +139,7 @@ public class ReferrerTest extends JUnit4TestBase {
    * Tests navigation across multiple domains when the browser does not have a proxy configured.
    */
   @Test
+  @NotYetImplemented(EDGE)
   @NeedsLocalEnvironment
   public void crossDomainHistoryNavigationWithoutAProxy() {
 
@@ -160,6 +166,7 @@ public class ReferrerTest extends JUnit4TestBase {
    * configured to use a proxy that permits direct access to that domain.
    */
   @Test
+  @Ignore(EDGE)
   @NeedsLocalEnvironment
   public void basicHistoryNavigationWithADirectProxy() {
     testServer1.start();
@@ -186,6 +193,7 @@ public class ReferrerTest extends JUnit4TestBase {
    * permits direct access to those domains.
    */
   @Test
+  @Ignore(EDGE)
   @NeedsLocalEnvironment
   public void crossDomainHistoryNavigationWithADirectProxy() {
     testServer1.start();
@@ -216,6 +224,7 @@ public class ReferrerTest extends JUnit4TestBase {
    * redirects the second domain to another host.
    */
   @Test
+  @Ignore(EDGE)
   @NeedsLocalEnvironment
   public void crossDomainHistoryNavigationWithAProxiedHost() {
     testServer1.start();
@@ -251,6 +260,7 @@ public class ReferrerTest extends JUnit4TestBase {
    * to connect directly to the target server.
    */
   @Test
+  @Ignore(EDGE)
   @NeedsLocalEnvironment
   public void crossDomainHistoryNavigationWhenProxyInterceptsHostRequests() {
     testServer1.start();
@@ -288,6 +298,8 @@ public class ReferrerTest extends JUnit4TestBase {
   @Ignore(MARIONETTE)
   @Ignore(value = FIREFOX, travis=true)
   @NeedsLocalEnvironment
+  @NotYetImplemented(CHROME)
+  @Ignore(EDGE)
   public void navigationWhenProxyInterceptsASpecificUrl() {
     testServer1.start();
     proxyServer.start();
@@ -409,7 +421,8 @@ public class ReferrerTest extends JUnit4TestBase {
       http.setIdleTimeout(500000);
 
       this.server.addConnector(http);
-      this.hostAndPort = HostAndPort.fromParts("localhost", port);
+
+      this.hostAndPort = HostAndPort.fromParts(JettyAppServer.detectHostname(), port);
     }
 
     void addHandler(Handler handler) {

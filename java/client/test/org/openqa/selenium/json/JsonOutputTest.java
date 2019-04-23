@@ -55,7 +55,7 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.DriverCommand;
 import org.openqa.selenium.remote.SessionId;
 
-import java.awt.*;
+import java.awt.Point;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -70,9 +70,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.stream.Stream;
-
-//import com.google.gson.JsonPrimitive;
-
 
 public class JsonOutputTest {
 
@@ -193,9 +190,9 @@ public class JsonOutputTest {
     SessionId sessionId = new SessionId("some id");
     String json = convert(sessionId);
 
-    JsonObject converted = new JsonParser().parse(json).getAsJsonObject();
+    JsonPrimitive converted = new JsonParser().parse(json).getAsJsonPrimitive();
 
-    assertThat(converted.get("value").getAsString()).isEqualTo("some id");
+    assertThat(converted.getAsString()).isEqualTo("some id");
   }
 
   @Test
@@ -353,8 +350,7 @@ public class JsonOutputTest {
                     "\"methodName\": \"" + e.getMethodName() + "\"");
 
       int posOfCurrStackTraceElement = json.indexOf(e.getMethodName());
-      assertThat(posOfCurrStackTraceElement).isGreaterThan(posOfLastStackTraceElement)
-          .describedAs("Mismatch in order of stack trace elements");
+      assertThat(posOfCurrStackTraceElement).isGreaterThan(posOfLastStackTraceElement);
     }
   }
 
@@ -530,8 +526,8 @@ public class JsonOutputTest {
     JsonObject converted = new JsonParser().parse(json).getAsJsonObject();
 
     assertThat(converted.has("sessionId")).isTrue();
-    JsonObject sid = converted.get("sessionId").getAsJsonObject();
-    assertThat(sid.get("value").getAsString()).isEqualTo(sessionId.toString());
+    JsonPrimitive sid = converted.get("sessionId").getAsJsonPrimitive();
+    assertThat(sid.getAsString()).isEqualTo(sessionId.toString());
 
     assertThat(commandName).isEqualTo(converted.get("name").getAsString());
 

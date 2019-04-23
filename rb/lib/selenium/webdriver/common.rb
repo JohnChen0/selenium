@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Licensed to the Software Freedom Conservancy (SFC) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -36,8 +38,8 @@ require 'selenium/webdriver/common/timeouts'
 require 'selenium/webdriver/common/window'
 require 'selenium/webdriver/common/logger'
 require 'selenium/webdriver/common/logs'
-require 'selenium/webdriver/common/options'
-require 'selenium/webdriver/common/w3c_options'
+require 'selenium/webdriver/common/manager'
+require 'selenium/webdriver/common/w3c_manager'
 require 'selenium/webdriver/common/search_context'
 require 'selenium/webdriver/common/action_builder'
 require 'selenium/webdriver/common/interactions/key_actions'

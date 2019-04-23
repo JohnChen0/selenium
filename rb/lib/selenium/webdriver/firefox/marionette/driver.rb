@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Licensed to the Software Freedom Conservancy (SFC) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -33,15 +35,7 @@ module Selenium
           def initialize(opts = {})
             opts[:desired_capabilities] = create_capabilities(opts)
 
-            unless opts.key?(:url)
-              driver_path = opts.delete(:driver_path) || Firefox.driver_path
-              driver_opts = opts.delete(:driver_opts) || {}
-              port = opts.delete(:port) || Service::DEFAULT_PORT
-
-              @service = Service.new(driver_path, port, driver_opts)
-              @service.start
-              opts[:url] = @service.uri
-            end
+            opts[:url] ||= service_url(opts)
 
             listener = opts.delete(:listener)
             WebDriver.logger.info 'Skipping handshake as we know it is W3C.'
@@ -61,13 +55,13 @@ module Selenium
           def quit
             super
           ensure
-            @service.stop if @service
+            @service&.stop
           end
 
           private
 
           def create_capabilities(opts)
-            caps = opts.delete(:desired_capabilities) { Remote::W3C::Capabilities.firefox }
+            caps = opts.delete(:desired_capabilities) { Remote::Capabilities.firefox }
             options = opts.delete(:options) { Options.new }
 
             firefox_options = opts.delete(:firefox_options)

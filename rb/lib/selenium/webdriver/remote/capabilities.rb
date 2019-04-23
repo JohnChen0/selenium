@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Licensed to the Software Freedom Conservancy (SFC) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -44,6 +46,7 @@ module Selenium
           end
 
           next if key == :proxy
+
           define_method "#{key}=" do |value|
             @capabilities[key] = value
           end
@@ -80,14 +83,21 @@ module Selenium
           def edge(opts = {})
             new({
               browser_name: 'MicrosoftEdge',
-              platform: :windows,
-              javascript_enabled: true,
-              takes_screenshot: true,
-              css_selectors_enabled: true
+              platform: :windows
             }.merge(opts))
           end
 
           def firefox(opts = {})
+            opts[:browser_version] = opts.delete(:version) if opts.key?(:version)
+            opts[:platform_name] = opts.delete(:platform) if opts.key?(:platform)
+            opts[:timeouts] = {}
+            opts[:timeouts]['implicit'] = opts.delete(:implicit_timeout) if opts.key?(:implicit_timeout)
+            opts[:timeouts]['pageLoad'] = opts.delete(:page_load_timeout) if opts.key?(:page_load_timeout)
+            opts[:timeouts]['script'] = opts.delete(:script_timeout) if opts.key?(:script_timeout)
+            new({browser_name: 'firefox', marionette: true}.merge(opts))
+          end
+
+          def firefox_legacy(opts = {})
             new({
               browser_name: 'firefox',
               javascript_enabled: true,
@@ -175,10 +185,6 @@ module Selenium
         # @option :native_events          [Boolean] does this driver use native events?
         # @option :proxy                  [Selenium::WebDriver::Proxy, Hash] proxy configuration
         #
-        # Firefox-specific options:
-        #
-        # @option :firefox_profile        [Selenium::WebDriver::Firefox::Profile] the firefox profile to use
-        #
         # @api public
         #
 
@@ -224,7 +230,7 @@ module Selenium
         # @api private
         #
 
-        def as_json(*)
+        def as_json(*) # rubocop:disable Metrics/CyclomaticComplexity
           hash = {}
 
           @capabilities.each do |key, value|
@@ -232,10 +238,16 @@ module Selenium
             when :platform
               hash['platform'] = value.to_s.upcase
             when :firefox_profile
-              hash['firefox_profile'] = value.as_json['zip'] if value
+              if value
+                WebDriver.logger.deprecate(':firefox_profile capabilitiy', 'Selenium::WebDriver::Firefox::Options#profile')
+                hash['firefox_profile'] = value.as_json['zip']
+              end
             when :proxy
               hash['proxy'] = value.as_json if value
             when String, :firefox_binary
+              if key == :firefox_binary && value
+                WebDriver.logger.deprecate(':firefox_binary capabilitiy', 'Selenium::WebDriver::Firefox::Options#binary')
+              end
               hash[key.to_s] = value
             when Symbol
               hash[camel_case(key.to_s)] = value
@@ -253,6 +265,7 @@ module Selenium
 
         def ==(other)
           return false unless other.is_a? self.class
+
           as_json == other.as_json
         end
         alias_method :eql?, :==

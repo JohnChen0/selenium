@@ -19,8 +19,8 @@ package org.openqa.selenium.testing.drivers;
 
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.json.Json;
-import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.http.HttpClient;
@@ -48,6 +48,7 @@ public class GridSupplier implements Supplier<WebDriver> {
     this.desired = desired;
   }
 
+  @Override
   public WebDriver get() {
     if (desired == null || !Boolean.getBoolean("selenium.browser.grid")) {
       return null;
@@ -104,7 +105,7 @@ public class GridSupplier implements Supplier<WebDriver> {
 
   public static void main(String[] args) {
     System.setProperty("selenium.browser.grid", "true");
-    WebDriver driver = new GridSupplier(DesiredCapabilities.firefox()).get();
+    WebDriver driver = new GridSupplier(new FirefoxOptions()).get();
     driver.get("http://www.google.com");
   }
 }

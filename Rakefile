@@ -21,7 +21,6 @@ require 'rake-tasks/crazy_fun/mappings/folder'
 require 'rake-tasks/crazy_fun/mappings/gcc'
 require 'rake-tasks/crazy_fun/mappings/javascript'
 require 'rake-tasks/crazy_fun/mappings/jruby'
-require 'rake-tasks/crazy_fun/mappings/mozilla'
 require 'rake-tasks/crazy_fun/mappings/python'
 require 'rake-tasks/crazy_fun/mappings/rake'
 require 'rake-tasks/crazy_fun/mappings/rename'
@@ -73,7 +72,6 @@ FolderMappings.new.add_all(crazy_fun)
 GccMappings.new.add_all(crazy_fun)
 JavascriptMappings.new.add_all(crazy_fun)
 JRubyMappings.new.add_all(crazy_fun)
-MozillaMappings.new.add_all(crazy_fun)
 PythonMappings.new.add_all(crazy_fun)
 RakeMappings.new.add_all(crazy_fun)
 RenameMappings.new.add_all(crazy_fun)
@@ -126,8 +124,11 @@ JAVA_RELEASE_TARGETS = [
   '//java/client/src/org/openqa/selenium:client-combined',
   '//java/server/src/com/thoughtworks/selenium:leg-rc',
   '//java/server/src/org/openqa/grid/selenium:classes',
+  '//java/server/src/org/openqa/selenium/grid:module',
   '//third_party/java/jetty:jetty'
 ]
+
+
 
 
 # Notice that because we're using rake, anything you can do in a normal rake
@@ -405,7 +406,7 @@ task :ios_driver => [
 
 file "build/javascript/deps.js" => FileList[
   "third_party/closure/goog/**/*.js",
-	"third_party/js/wgxpath/**/*.js",
+  "third_party/js/wgxpath/**/*.js",
   "javascript/*/**/*.js",  # Don't depend on js files directly in javascript/
   ] do
 
@@ -560,6 +561,30 @@ namespace :node do
   end
 end
 
+namespace :side do
+  task :atoms => [
+    "//javascript/atoms/fragments:find-element",
+  ] do
+    # TODO: move directly to IDE's directory once the repositories are merged
+    baseDir = "build/javascript/atoms"
+    mkdir_p baseDir
+
+    [
+      Rake::Task["//javascript/atoms/fragments:find-element"].out,
+    ].each do |atom|
+      name = File.basename(atom)
+
+      puts "Generating #{atom} as #{name}"
+      File.open(File.join(baseDir, name), "w") do |f|
+        f << "// GENERATED CODE - DO NOT EDIT\n"
+        f << "module.exports = "
+        f << IO.read(atom).strip
+        f << ";\n"
+      end
+    end
+  end
+end
+
 namespace :safari do
   desc "Build the SafariDriver java client"
   task :build => [
@@ -577,7 +602,6 @@ namespace :copyright do
     Copyright.Update(
         FileList["javascript/**/*.js"].exclude(
             "javascript/atoms/test/jquery.min.js",
-            "javascript/firefox-driver/extension/components/httpd.js",
             "javascript/jsunit/**/*.js",
             "javascript/node/selenium-webdriver/node_modules/**/*.js",
             "javascript/selenium-core/lib/**/*.js",
@@ -591,16 +615,10 @@ namespace :copyright do
         :style => "#")
     Copyright.Update(
       FileList["rb/**/*.rb"],
-      :style => "#")
+      :style => "#",
+      :prefix => ["# frozen_string_literal: true\n", "\n"])
     Copyright.Update(
-        FileList["java/**/*.java"].exclude(
-            "java/client/src/org/openqa/selenium/internal/Base64Encoder.java",
-            "java/client/test/org/openqa/selenium/internal/Base64EncoderTest.java",
-            "java/server/src/cybervillains/**/*.java",
-            "java/server/src/org/openqa/selenium/server/FrameGroupCommandQueueSet.java",
-            "java/server/src/org/openqa/selenium/server/FutureFileResource.java",
-            "java/server/src/org/openqa/selenium/server/ProxyHandler.java"
-            ))
+        FileList["java/**/*.java"])
   end
 end
 

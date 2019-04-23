@@ -18,6 +18,7 @@
 package org.openqa.selenium.grid.node.remote;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.openqa.selenium.net.Urls.fromUri;
 import static org.openqa.selenium.remote.http.HttpMethod.DELETE;
 import static org.openqa.selenium.remote.http.HttpMethod.GET;
 import static org.openqa.selenium.remote.http.HttpMethod.POST;
@@ -27,18 +28,24 @@ import com.google.common.collect.ImmutableSet;
 
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.NoSuchSessionException;
+import org.openqa.selenium.grid.component.HealthCheck;
+import org.openqa.selenium.grid.data.CreateSessionRequest;
+import org.openqa.selenium.grid.data.CreateSessionResponse;
+import org.openqa.selenium.grid.data.NodeStatus;
 import org.openqa.selenium.grid.data.Session;
 import org.openqa.selenium.grid.node.Node;
-import org.openqa.selenium.grid.node.NodeStatus;
 import org.openqa.selenium.grid.web.Values;
 import org.openqa.selenium.json.Json;
+import org.openqa.selenium.json.JsonInput;
 import org.openqa.selenium.remote.SessionId;
 import org.openqa.selenium.remote.http.HttpClient;
 import org.openqa.selenium.remote.http.HttpRequest;
 import org.openqa.selenium.remote.http.HttpResponse;
 import org.openqa.selenium.remote.tracing.DistributedTracer;
+import org.openqa.selenium.remote.tracing.Span;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.Collection;
@@ -55,18 +62,20 @@ public class RemoteNode extends Node {
   private final Function<HttpRequest, HttpResponse> client;
   private final URI externalUri;
   private final Set<Capabilities> capabilities;
+  private final HealthCheck healthCheck;
 
   public RemoteNode(
       DistributedTracer tracer,
+      HttpClient.Factory clientFactory,
       UUID id,
       URI externalUri,
-      Collection<Capabilities> capabilities,
-      HttpClient client) {
-    super(tracer, id);
+      Collection<Capabilities> capabilities) {
+    super(tracer, id, externalUri);
     this.externalUri = Objects.requireNonNull(externalUri);
     this.capabilities = ImmutableSet.copyOf(capabilities);
 
-    Objects.requireNonNull(client);
+    HttpClient client = Objects.requireNonNull(clientFactory).createClient(fromUri(externalUri));
+
     this.client = req -> {
       try {
         return client.execute(req);
@@ -74,6 +83,8 @@ public class RemoteNode extends Node {
         throw new UncheckedIOException(e);
       }
     };
+
+    this.healthCheck = new RemoteCheck();
   }
 
   @Override
@@ -87,15 +98,15 @@ public class RemoteNode extends Node {
   }
 
   @Override
-  public Optional<Session> newSession(Capabilities capabilities) {
-    Objects.requireNonNull(capabilities, "Capabilities for session are not set");
+  public Optional<CreateSessionResponse> newSession(CreateSessionRequest sessionRequest) {
+    Objects.requireNonNull(sessionRequest, "Capabilities for session are not set");
 
     HttpRequest req = new HttpRequest(POST, "/se/grid/node/session");
-    req.setContent(JSON.toJson(capabilities).getBytes(UTF_8));
+    req.setContent(JSON.toJson(sessionRequest).getBytes(UTF_8));
 
     HttpResponse res = client.apply(req);
 
-    return Optional.ofNullable(Values.get(res, Session.class));
+    return Optional.ofNullable(Values.get(res, CreateSessionResponse.class));
   }
 
   @Override
@@ -148,7 +159,38 @@ public class RemoteNode extends Node {
 
     HttpResponse res = client.apply(req);
 
-    return Values.get(res, NodeStatus.class);
+    try (Reader reader = res.getContentReader();
+         JsonInput in = JSON.newInput(reader)) {
+      in.beginObject();
+
+      // Skip everything until we find "value"
+      while (in.hasNext()) {
+        if ("value".equals(in.nextName())) {
+          in.beginObject();
+
+          while (in.hasNext()) {
+            if ("node".equals(in.nextName())) {
+              return in.read(NodeStatus.class);
+            } else {
+              in.skipValue();
+            }
+          }
+
+          in.endObject();
+        } else {
+          in.skipValue();
+        }
+      }
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+
+    throw new IllegalStateException("Unable to read status");
+  }
+
+  @Override
+  public HealthCheck getHealthCheck() {
+    return healthCheck;
   }
 
   private Map<String, Object> toJson() {
@@ -158,4 +200,36 @@ public class RemoteNode extends Node {
         "capabilities", capabilities);
   }
 
+  private class RemoteCheck implements HealthCheck {
+    @Override
+    public Result check() {
+      HttpRequest req = new HttpRequest(GET, "/status");
+
+
+      try (Span span = tracer.createSpan("node.health-check", null)) {
+        span.addTag("http.url", req.getUri());
+        span.addTag("http.method", req.getMethod());
+        span.addTag("node.id", getId());
+
+        HttpResponse res = client.apply(req);
+        span.addTag("http.code", res.getStatus());
+
+        if (res.getStatus() == 200) {
+          span.addTag("health-check", true);
+          return new Result(true, externalUri + " is ok");
+        }
+        span.addTag("health-check", false);
+        return new Result(
+            false,
+            String.format(
+                "An error occurred reading the status of %s: %s",
+                externalUri,
+                res.getContentString()));
+      } catch (RuntimeException e) {
+        return new Result(
+            false,
+            "Unable to determine node status: " + e.getMessage());
+      }
+    }
+  }
 }

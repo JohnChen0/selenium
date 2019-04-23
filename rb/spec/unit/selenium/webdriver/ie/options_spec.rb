@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Licensed to the Software Freedom Conservancy (SFC) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,12 +17,13 @@
 # specific language governing permissions and limitations
 # under the License.
 
-require File.expand_path('../../spec_helper', __FILE__)
+require File.expand_path('../spec_helper', __dir__)
 
 module Selenium
   module WebDriver
     module IE
       describe Options do
+        subject(:options) { described_class.new }
 
         describe '#initialize' do
           it 'sets passed args' do
@@ -79,8 +82,8 @@ module Selenium
           end
 
           it 'sets passed native_events' do
-            opt = Options.new(native_events: true)
-            expect(opt.native_events).to eq(true)
+            opt = Options.new(native_events: false)
+            expect(opt.native_events).to eq(false)
           end
 
           it 'sets passed persistent_hover' do
@@ -106,15 +109,15 @@ module Selenium
 
         describe '#add_argument' do
           it 'adds a command-line argument' do
-            subject.add_argument('foo')
-            expect(subject.args.to_a).to eq(['foo'])
+            options.add_argument('foo')
+            expect(options.args.to_a).to eq(['foo'])
           end
         end
 
         describe '#add_option' do
           it 'adds an option' do
-            subject.add_option(:foo, 'bar')
-            expect(subject.options[:foo]).to eq('bar')
+            options.add_option(:foo, 'bar')
+            expect(options.options[:foo]).to eq('bar')
           end
         end
 
@@ -150,7 +153,7 @@ module Selenium
             expect(json['ignoreProtectedModeSettings']).to eq(false)
             expect(json['ignoreZoomSetting']).to eq(false)
             expect(json['initialBrowserUrl']).to eq('http://google.com')
-            expect(json['nativeEvents']).to eq(true)
+            expect(json['nativeEvents']).to eq(false)
             expect(json['enablePersistentHover']).to eq(false)
             expect(json['requireWindowFocus']).to eq(true)
             expect(json['ie.usePerProcessProxy']).to eq(true)

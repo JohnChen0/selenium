@@ -54,7 +54,7 @@ namespace OpenQA.Selenium.Opera
     {
         /// <summary>
         /// Gets the name of the capability used to store Opera options in
-        /// a <see cref="DesiredCapabilities"/> object.
+        /// an <see cref="ICapabilities"/> object.
         /// </summary>
         public static readonly string Capability = "operaOptions";
 
@@ -81,7 +81,6 @@ namespace OpenQA.Selenium.Opera
         private Dictionary<string, object> additionalOperaOptions = new Dictionary<string, object>();
         private Dictionary<string, object> userProfilePreferences;
         private Dictionary<string, object> localStatePreferences;
-        private Proxy proxy;
 
         public OperaOptions() : base()
         {

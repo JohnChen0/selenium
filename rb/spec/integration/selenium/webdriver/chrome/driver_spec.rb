@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Licensed to the Software Freedom Conservancy (SFC) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -48,6 +50,20 @@ module Selenium
           driver.download_path = File.expand_path(__dir__)
           # there is no simple way to verify that it's now possible to download
           # at least it doesn't crash
+        end
+
+        it 'can execute CDP commands' do
+          res = driver.execute_cdp('Page.addScriptToEvaluateOnNewDocument', source: 'window.was_here="TW";')
+          expect(res).to have_key('identifier')
+
+          begin
+            driver.navigate.to url_for('formPage.html')
+
+            tw = driver.execute_script('return window.was_here')
+            expect(tw).to eq('TW')
+          ensure
+            driver.execute_cdp('Page.removeScriptToEvaluateOnNewDocument', identifier: res['identifier'])
+          end
         end
       end
     end # Chrome

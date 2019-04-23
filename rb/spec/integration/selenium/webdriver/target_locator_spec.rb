@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Licensed to the Software Freedom Conservancy (SFC) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -89,9 +91,9 @@ module Selenium
           wait.until { driver.window_handles.size == 2 }
           expect(driver.title).to eq('XHTML Test Page')
 
-          expect do
+          expect {
             driver.switch_to.window(new_window) { raise 'foo' }
-          end.to raise_error(RuntimeError, 'foo')
+          }.to raise_error(RuntimeError, 'foo')
 
           expect(driver.title).to eq('XHTML Test Page')
         end
@@ -297,15 +299,7 @@ module Selenium
         context 'unhandled alert error', except: {browser: %i[safari safari_preview]} do
           after { reset_driver! }
 
-          it 'raises an UnhandledAlertError if an alert has not been dealt with', except: {browser: %i[ie firefox]} do
-            driver.navigate.to url_for('alerts.html')
-            driver.find_element(id: 'alert').click
-            wait_for_alert
-
-            expect { driver.title }.to raise_error(Selenium::WebDriver::Error::UnhandledAlertError)
-          end
-
-          it 'raises an UnexpectedAlertOpenError if an alert has not been dealt with', only: {browser: %i[ie firefox]} do
+          it 'raises an UnexpectedAlertOpenError if an alert has not been dealt with', only: {browser: %i[chrome ie firefox]} do
             driver.navigate.to url_for('alerts.html')
             driver.find_element(id: 'alert').click
             wait_for_alert

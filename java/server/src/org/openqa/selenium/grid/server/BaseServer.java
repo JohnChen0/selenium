@@ -25,13 +25,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
 
 import org.openqa.selenium.WebDriverException;
-import org.openqa.selenium.grid.web.CommandHandler;
 import org.openqa.selenium.grid.web.Routes;
-import org.openqa.selenium.injector.Injector;
 import org.openqa.selenium.json.Json;
 import org.openqa.selenium.net.NetworkUtils;
 import org.openqa.selenium.net.PortProber;
-import org.openqa.selenium.remote.http.HttpRequest;
 import org.seleniumhq.jetty9.security.ConstraintMapping;
 import org.seleniumhq.jetty9.security.ConstraintSecurityHandler;
 import org.seleniumhq.jetty9.server.Connector;
@@ -40,6 +37,8 @@ import org.seleniumhq.jetty9.server.HttpConnectionFactory;
 import org.seleniumhq.jetty9.server.ServerConnector;
 import org.seleniumhq.jetty9.servlet.ServletContextHandler;
 import org.seleniumhq.jetty9.servlet.ServletHolder;
+import org.seleniumhq.jetty9.util.log.JavaUtilLog;
+import org.seleniumhq.jetty9.util.log.Log;
 import org.seleniumhq.jetty9.util.security.Constraint;
 import org.seleniumhq.jetty9.util.thread.QueuedThreadPool;
 
@@ -48,12 +47,8 @@ import java.net.BindException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.BiFunction;
-import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import javax.servlet.Servlet;
@@ -64,11 +59,8 @@ public class BaseServer<T extends BaseServer> implements Server<T> {
   private static final int MAX_SHUTDOWN_RETRIES = 8;
 
   private final org.seleniumhq.jetty9.server.Server server;
-  private final Map<Predicate<HttpRequest>, BiFunction<Injector, HttpRequest, CommandHandler>>
-      handlers;
   private final List<Routes> routes = new ArrayList<>();
   private final ServletContextHandler servletContextHandler;
-  private final Injector injector;
   private final URL url;
 
   public BaseServer(BaseServerOptions options) {
@@ -88,17 +80,11 @@ public class BaseServer<T extends BaseServer> implements Server<T> {
       throw new UncheckedIOException(e);
     }
 
+    Log.setLog(new JavaUtilLog());
     this.server = new org.seleniumhq.jetty9.server.Server(
         new QueuedThreadPool(options.getMaxServerThreads()));
 
-    // Insertion order may matter
-    this.handlers = new LinkedHashMap<>();
-
     Json json = new Json();
-    this.injector = Injector.builder()
-        .register(json)
-        .build();
-
     addRoute(
         Routes.get("/status").using(
         (in, out) -> {
@@ -181,6 +167,7 @@ public class BaseServer<T extends BaseServer> implements Server<T> {
     this.routes.add(route);
   }
 
+  @Override
   public boolean isStarted() {
     return server.isStarted();
   }
@@ -194,7 +181,7 @@ public class BaseServer<T extends BaseServer> implements Server<T> {
       }
       Routes first = routes.remove(0);
       Routes routes = Routes.combine(first, this.routes.toArray(new Routes[0]))
-          .decorateWith(W3CCommandHandler.class)
+          .decorateWith(W3CCommandHandler::new)
           .build();
 
       addServlet(new CommandHandlerServlet(routes), "/*");

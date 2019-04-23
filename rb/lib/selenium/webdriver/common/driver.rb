@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Licensed to the Software Freedom Conservancy (SFC) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -73,7 +75,7 @@ module Selenium
       end
 
       def inspect
-        format '#<%s:0x%x browser=%s>', self.class, hash * 2, bridge.browser.inspect
+        format '#<%<class>s:0x%<hash>x browser=%<browser>s>', class: self.class, hash: hash * 2, browser: bridge.browser.inspect
       end
 
       #
@@ -95,12 +97,12 @@ module Selenium
       end
 
       #
-      # @return [Options]
-      # @see Options
+      # @return [Manager]
+      # @see Manager
       #
 
       def manage
-        bridge.options
+        bridge.manage
       end
 
       #
@@ -286,6 +288,21 @@ module Selenium
       private
 
       attr_reader :bridge
+
+      def service_url(opts)
+        @service = opts.delete(:service)
+        %i[driver_opts driver_path port].each do |key|
+          next unless opts.key? key
+
+          WebDriver.logger.deprecate(":#{key}", ':service with an instance of Selenium::WebDriver::Service')
+        end
+        @service ||= Service.send(browser,
+                                  args: opts.delete(:driver_opts),
+                                  path: opts.delete(:driver_path),
+                                  port: opts.delete(:port))
+        @service.start
+        @service.uri
+      end
     end # Driver
   end # WebDriver
 end # Selenium

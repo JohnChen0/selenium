@@ -42,12 +42,11 @@ import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.io.FileHandler;
 import org.openqa.selenium.net.UrlChecker;
 import org.openqa.selenium.os.CommandLine;
+import org.openqa.selenium.remote.service.DriverService;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -101,7 +100,6 @@ public class XpiDriverService extends FirefoxDriverService {
       } else if ("/dev/null".equals(firefoxLogFile)) {
         sendOutputTo(ByteStreams.nullOutputStream());
       } else {
-        // TODO: This stream is leaked.
         sendOutputTo(new FileOutputStream(firefoxLogFile));
       }
     } else {
@@ -126,8 +124,6 @@ public class XpiDriverService extends FirefoxDriverService {
       profile.setPreference(PORT_PREFERENCE, port);
       addWebDriverExtension(profile);
       profileDir = profile.layoutOnDisk();
-
-      binary.setOutputWatcher(getOutputStream());
 
       ImmutableMap.Builder<String, String> envBuilder = new ImmutableMap.Builder<String, String>()
           .putAll(getEnvironment())
@@ -155,7 +151,7 @@ public class XpiDriverService extends FirefoxDriverService {
         process.updateDynamicLibraryPath(firefoxLibraryPath);
       }
 
-      process.copyOutputTo(getActualOutputStream());
+      process.copyOutputTo(getOutputStream());
 
       process.executeAsync();
 
@@ -227,17 +223,6 @@ public class XpiDriverService extends FirefoxDriverService {
     return builtPath.toString();
   }
 
-  private OutputStream getActualOutputStream() throws FileNotFoundException {
-    String firefoxLogFile = System.getProperty(FirefoxDriver.SystemProperty.BROWSER_LOGFILE);
-    if (firefoxLogFile != null) {
-      if ("/dev/stdout".equals(firefoxLogFile)) {
-        return System.out;
-      }
-      return new FileOutputStream(firefoxLogFile);
-    }
-    return getOutputStream();
-  }
-
   @Override
   protected void waitUntilAvailable() throws MalformedURLException {
     try {
@@ -253,16 +238,9 @@ public class XpiDriverService extends FirefoxDriverService {
 
   @Override
   public void stop() {
-    lock.lock();
-    try {
-      if (process != null) {
-        process.destroy();
-      }
-      profile.cleanTemporaryModel();
-      profile.clean(profileDir);
-    } finally {
-      lock.unlock();
-    }
+    super.stop();
+    profile.cleanTemporaryModel();
+    profile.clean(profileDir);
   }
 
   private void addWebDriverExtension(FirefoxProfile profile) {
@@ -306,12 +284,22 @@ public class XpiDriverService extends FirefoxDriverService {
   static XpiDriverService createDefaultService(Capabilities caps) {
     Builder builder = new Builder().usingAnyFreePort();
 
-    FirefoxProfile profile = Stream.<ThrowingSupplier<FirefoxProfile>>of(
+    Stream.<Supplier<FirefoxProfile>>of(
         () -> (FirefoxProfile) caps.getCapability(FirefoxDriver.PROFILE),
-        () -> FirefoxProfile.fromJson((String) caps.getCapability(FirefoxDriver.PROFILE)),
+        () -> { try {
+          return FirefoxProfile.fromJson((String) caps.getCapability(FirefoxDriver.PROFILE));
+        } catch (IOException ex) {
+          throw new RuntimeException(ex);
+        }},
+        // Don't believe IDEA, this lambda can't be replaced with a method reference!
         () -> ((FirefoxOptions) caps).getProfile(),
         () -> (FirefoxProfile) ((Map<String, Object>) caps.getCapability(FIREFOX_OPTIONS)).get("profile"),
-        () -> FirefoxProfile.fromJson((String) ((Map<String, Object>) caps.getCapability(FIREFOX_OPTIONS)).get("profile")),
+        () -> { try {
+          return FirefoxProfile.fromJson(
+              (String) ((Map<String, Object>) caps.getCapability(FIREFOX_OPTIONS)).get("profile"));
+        } catch (IOException ex) {
+          throw new RuntimeException(ex);
+        }},
         () -> {
           Map<String, Object> options = (Map<String, Object>) caps.getCapability(FIREFOX_OPTIONS);
           FirefoxProfile toReturn = new FirefoxProfile();
@@ -331,11 +319,7 @@ public class XpiDriverService extends FirefoxDriverService {
         })
         .filter(Objects::nonNull)
         .findFirst()
-        .orElse(null);
-
-    if (profile != null) {
-      builder.withProfile(profile);
-    }
+        .ifPresent(builder::withProfile);
 
     Object binary = caps.getCapability(FirefoxDriver.BINARY);
     if (binary != null) {
@@ -360,7 +344,7 @@ public class XpiDriverService extends FirefoxDriverService {
     return new Builder();
   }
 
-  @AutoService(FirefoxDriverService.Builder.class)
+  @AutoService(DriverService.Builder.class)
   public static class Builder extends FirefoxDriverService.Builder<XpiDriverService, XpiDriverService.Builder> {
 
     private FirefoxBinary binary = null;
@@ -372,18 +356,18 @@ public class XpiDriverService extends FirefoxDriverService {
     }
 
     @Override
-    public int score(Capabilities capabilites) {
-      if (capabilites.is(FirefoxDriver.MARIONETTE)) {
+    public int score(Capabilities capabilities) {
+      if (capabilities.is(FirefoxDriver.MARIONETTE)) {
         return 0;
       }
 
       int score = 0;
 
-      if (capabilites.getCapability(FirefoxDriver.BINARY) != null) {
+      if (capabilities.getCapability(FirefoxDriver.BINARY) != null) {
         score++;
       }
 
-      if (capabilites.getCapability(FirefoxDriver.PROFILE) != null) {
+      if (capabilities.getCapability(FirefoxDriver.PROFILE) != null) {
         score++;
       }
 
@@ -442,25 +426,6 @@ public class XpiDriverService extends FirefoxDriverService {
             getLogFile());
       } catch (IOException e) {
         throw new WebDriverException(e);
-      }
-    }
-  }
-
-  @FunctionalInterface
-  private interface ThrowingSupplier<V> extends Supplier<V> {
-
-    V throwingGet() throws Exception;
-
-    @Override
-    default V get() {
-      try {
-        return throwingGet();
-      } catch (Exception e) {
-        if (e instanceof RuntimeException) {
-          throw (RuntimeException) e;
-        } else {
-          throw new RuntimeException(e);
-        }
       }
     }
   }

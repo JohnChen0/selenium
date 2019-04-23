@@ -17,14 +17,16 @@
 
 package org.openqa.selenium.grid.distributor;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.google.common.collect.ImmutableMap;
 
+import org.openqa.selenium.grid.data.DistributorStatus;
 import org.openqa.selenium.grid.web.CommandHandler;
 import org.openqa.selenium.json.Json;
 import org.openqa.selenium.remote.http.HttpRequest;
 import org.openqa.selenium.remote.http.HttpResponse;
 
-import java.io.IOException;
 import java.util.Objects;
 
 class StatusHandler implements CommandHandler {
@@ -38,14 +40,15 @@ class StatusHandler implements CommandHandler {
   }
 
   @Override
-  public void execute(HttpRequest req, HttpResponse resp) throws IOException {
+  public void execute(HttpRequest req, HttpResponse resp) {
     DistributorStatus status = distributor.getStatus();
 
     ImmutableMap<String, Object> report = ImmutableMap.of(
         "value", ImmutableMap.of(
             "ready", status.hasCapacity(),
             "message", status.hasCapacity() ? "Ready" : "No free slots available",
-            "node", status));
-;
+            "grid", status));
+
+    resp.setContent(json.toJson(report).getBytes(UTF_8));
   }
 }

@@ -54,7 +54,7 @@ namespace OpenQA.Selenium.Chrome
     {
         /// <summary>
         /// Gets the name of the capability used to store Chrome options in
-        /// a <see cref="DesiredCapabilities"/> object.
+        /// an <see cref="ICapabilities"/> object.
         /// </summary>
         public static readonly string Capability = "goog:chromeOptions";
 
@@ -79,7 +79,7 @@ namespace OpenQA.Selenium.Chrome
         private const string UseSpecCompliantProtocolOption = "w3c";
 
         private bool leaveBrowserRunning;
-        private bool useSpecCompliantProtocol;
+        private bool useSpecCompliantProtocol = true;
         private string binaryLocation;
         private string debuggerAddress;
         private string minidumpPath;

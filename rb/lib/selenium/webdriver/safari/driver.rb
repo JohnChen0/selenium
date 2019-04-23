@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Licensed to the Software Freedom Conservancy (SFC) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -32,15 +34,7 @@ module Selenium
         def initialize(opts = {})
           opts[:desired_capabilities] = create_capabilities(opts)
 
-          unless opts.key?(:url)
-            driver_path = opts.delete(:driver_path) || Safari.driver_path
-            driver_opts = opts.delete(:driver_opts) || {}
-            port = opts.delete(:port) || Service::DEFAULT_PORT
-
-            @service = Service.new(driver_path, port, driver_opts)
-            @service.start
-            opts[:url] = @service.uri
-          end
+          opts[:url] ||= service_url(opts)
 
           listener = opts.delete(:listener)
           @bridge = Remote::Bridge.handshake(opts)
@@ -49,10 +43,14 @@ module Selenium
           super(@bridge, listener: listener)
         end
 
+        def browser
+          :safari
+        end
+
         def quit
           super
         ensure
-          @service.stop if @service
+          @service&.stop
         end
 
         private

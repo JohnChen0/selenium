@@ -22,22 +22,22 @@ import static java.net.HttpURLConnection.HTTP_OK;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.openqa.selenium.json.Json.MAP_TYPE;
 import static org.openqa.selenium.remote.http.HttpMethod.GET;
 
 import org.junit.Test;
 import org.openqa.selenium.UnableToSetCookieException;
 import org.openqa.selenium.UnsupportedCommandException;
+import org.openqa.selenium.grid.web.ErrorCodec;
 import org.openqa.selenium.grid.web.Routes;
-import org.openqa.selenium.injector.Injector;
 import org.openqa.selenium.json.Json;
-import org.openqa.selenium.remote.ErrorHandler;
-import org.openqa.selenium.remote.Response;
 import org.openqa.selenium.remote.http.HttpRequest;
 import org.openqa.testing.FakeHttpServletRequest;
 import org.openqa.testing.FakeHttpServletResponse;
 import org.openqa.testing.UrlInfo;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.function.Function;
 
 import javax.servlet.http.HttpServletRequest;
@@ -57,14 +57,13 @@ public class CommandHandlerServletTest {
 
   private final Function<FakeHttpServletResponse, Throwable> extractThrowable =
       res -> {
-        Response response = new Json().toType(res.getBody(), Response.class);
+        Map<String, Object> response = new Json().toType(res.getBody(), MAP_TYPE);
         try {
-          new ErrorHandler(true).throwIfResponseFailed(response, 100);
-        } catch (Throwable thrown) {
-          return thrown;
+          return ErrorCodec.createDefault().decode(response);
+        } catch (IllegalArgumentException ignored) {
+          fail("Apparently the command succeeded" + res.getBody());
+          return null;
         }
-        fail("Apparently the command succeeded" + res.getBody());
-        return null;
       };
 
   @Test
@@ -86,7 +85,7 @@ public class CommandHandlerServletTest {
   @Test
   public void shouldCorrectlyReturnAnUnknownCommandExceptionForUnmappableUrls() throws IOException {
     CommandHandlerServlet servlet = new CommandHandlerServlet(
-        Routes.matching(req -> false).using((req, res) -> {}).decorateWith(W3CCommandHandler.class).build());
+        Routes.matching(req -> false).using((req, res) -> {}).decorateWith(W3CCommandHandler::new).build());
 
     HttpServletRequest request = requestConverter.apply(new HttpRequest(GET, "/missing"));
     FakeHttpServletResponse response = new FakeHttpServletResponse();
@@ -99,12 +98,10 @@ public class CommandHandlerServletTest {
 
   @Test
   public void exceptionsThrownByHandlersAreConvertedToAProperPayload() throws IOException {
-    Injector injector = Injector.builder().register(new Json()).build();
-
     CommandHandlerServlet servlet = new CommandHandlerServlet(
         Routes.matching(req -> true).using((req, res) -> {
           throw new UnableToSetCookieException("Yowza");
-        }).decorateWith(W3CCommandHandler.class).build());
+        }).decorateWith(W3CCommandHandler::new).build());
 
     HttpServletRequest request = requestConverter.apply(new HttpRequest(GET, "/exceptional"));
     FakeHttpServletResponse response = new FakeHttpServletResponse();

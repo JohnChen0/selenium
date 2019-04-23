@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Licensed to the Software Freedom Conservancy (SFC) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -279,8 +281,8 @@ module Selenium
           # cookies
           #
 
-          def options
-            @options ||= WebDriver::Options.new(self)
+          def manage
+            @manage ||= WebDriver::Manager.new(self)
           end
 
           def add_cookie(cookie)
@@ -571,6 +573,7 @@ module Selenium
 
           def assert_javascript_enabled
             return if capabilities.javascript_enabled?
+
             raise Error::UnsupportedOperationError, 'underlying webdriver instance does not support javascript'
           end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Licensed to the Software Freedom Conservancy (SFC) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -23,28 +25,26 @@ module Selenium
       #
 
       class Service < WebDriver::Service
-        DEFAULT_PORT = 9515
-        @executable = 'chromedriver'.freeze
-        @missing_text = <<-ERROR.gsub(/\n +| {2,}/, ' ').freeze
+        @default_port = 9515
+        @executable = 'chromedriver'
+        @missing_text = <<~ERROR
           Unable to find chromedriver. Please download the server from
-          http://chromedriver.storage.googleapis.com/index.html and place it somewhere on your PATH.
+          https://chromedriver.storage.googleapis.com/index.html and place it somewhere on your PATH.
           More info at https://github.com/SeleniumHQ/selenium/wiki/ChromeDriver.
         ERROR
+        @shutdown_supported = true
+
+        def self.driver_path=(path)
+          Platform.assert_executable path if path.is_a?(String)
+          @driver_path = path
+        end
 
         private
 
-        def start_process
-          @process = build_process(@executable_path, "--port=#{@port}", *@extra_args)
-          @process.leader = true unless Platform.windows?
-          @process.start
-        end
-
-        def cannot_connect_error_text
-          "unable to connect to chromedriver #{@host}:#{@port}"
-        end
-
+        # Note: This processing is deprecated
         def extract_service_args(driver_opts)
           driver_args = super
+          driver_opts = driver_opts.dup
           driver_args << "--log-path=#{driver_opts.delete(:log_path)}" if driver_opts.key?(:log_path)
           driver_args << "--url-base=#{driver_opts.delete(:url_base)}" if driver_opts.key?(:url_base)
           driver_args << "--port-server=#{driver_opts.delete(:port_server)}" if driver_opts.key?(:port_server)

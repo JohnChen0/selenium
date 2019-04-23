@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Licensed to the Software Freedom Conservancy (SFC) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -20,19 +22,23 @@ require 'net/http'
 require 'selenium/webdriver/edge/bridge'
 require 'selenium/webdriver/edge/driver'
 require 'selenium/webdriver/edge/options'
-require 'selenium/webdriver/edge/service'
 
 module Selenium
   module WebDriver
     module Edge
       def self.driver_path=(path)
-        Platform.assert_executable path
-        @driver_path = path
+        WebDriver.logger.deprecate 'Selenium::WebDriver::Edge#driver_path=',
+                                   'Selenium::WebDriver::Edge::Service#driver_path='
+        Selenium::WebDriver::Edge::Service.driver_path = path
       end
 
-      def self.driver_path(warning = true)
-        @driver_path ||= nil
+      def self.driver_path
+        WebDriver.logger.deprecate 'Selenium::WebDriver::Edge#driver_path',
+                                   'Selenium::WebDriver::Edge::Service#driver_path'
+        Selenium::WebDriver::Edge::Service.driver_path
       end
     end # Edge
   end # WebDriver
 end # Selenium
+
+require 'selenium/webdriver/edge/service'

@@ -18,6 +18,7 @@
 package org.openqa.grid.internal.listener;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -50,6 +51,7 @@ public class RegistrationListenerTest {
       super(request, registry);
     }
 
+    @Override
     public void beforeRegistration() {
       try {
         Thread.sleep(1000);
@@ -98,6 +100,7 @@ public class RegistrationListenerTest {
       super(request, registry);
     }
 
+    @Override
     public void beforeRegistration() {
       synchronized (lock) {
         if (firstRun) {
@@ -128,6 +131,7 @@ public class RegistrationListenerTest {
       super(request, registry);
     }
 
+    @Override
     public void beforeRegistration() {
       try {
         Thread.sleep(1000);
@@ -157,7 +161,7 @@ public class RegistrationListenerTest {
       // the registry yet
       assertEquals(registry.getAllProxies().size(), 1);
       // check onRegistration has not run yet.
-      assertEquals(slowRemoteUp, false);
+      assertFalse(slowRemoteUp);
       // should return right away, as RemoteProxy is fast.
       RequestHandler req =GridHelper.createNewSessionHandler(registry, app1);
       req.process();
@@ -168,7 +172,7 @@ public class RegistrationListenerTest {
       // the registry yet
       assertEquals(registry.getAllProxies().size(), 1);
       // check onRegistration has not run yet.
-      assertEquals(false, slowRemoteUp);
+      assertFalse(slowRemoteUp);
 
       // will block until MySlowRemoteProxy is fully registered.
       RequestHandler req2 = GridHelper.createNewSessionHandler(registry, app1);

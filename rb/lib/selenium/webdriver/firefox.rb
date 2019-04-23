@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Licensed to the Software Freedom Conservancy (SFC) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -32,7 +34,6 @@ require 'selenium/webdriver/firefox/legacy/driver'
 require 'selenium/webdriver/firefox/marionette/bridge'
 require 'selenium/webdriver/firefox/marionette/driver'
 require 'selenium/webdriver/firefox/options'
-require 'selenium/webdriver/firefox/service'
 
 module Selenium
   module WebDriver
@@ -44,12 +45,15 @@ module Selenium
       DEFAULT_LOAD_NO_FOCUS_LIB = false
 
       def self.driver_path=(path)
-        Platform.assert_executable path
-        @driver_path = path
+        WebDriver.logger.deprecate 'Selenium::WebDriver::Firefox#driver_path=',
+                                   'Selenium::WebDriver::Firefox::Service#driver_path='
+        Selenium::WebDriver::Firefox::Service.driver_path = path
       end
 
       def self.driver_path
-        @driver_path ||= nil
+        WebDriver.logger.deprecate 'Selenium::WebDriver::Firefox#driver_path',
+                                   'Selenium::WebDriver::Firefox::Service#driver_path'
+        Selenium::WebDriver::Firefox::Service.driver_path
       end
 
       def self.path=(path)
@@ -58,3 +62,5 @@ module Selenium
     end # Firefox
   end # WebDriver
 end # Selenium
+
+require 'selenium/webdriver/firefox/service'

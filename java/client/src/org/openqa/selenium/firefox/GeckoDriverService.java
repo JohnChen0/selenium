@@ -29,11 +29,11 @@ import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.net.PortProber;
 import org.openqa.selenium.remote.BrowserType;
+import org.openqa.selenium.remote.service.DriverService;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
 
 /**
  * Manages the life and death of an GeckoDriver aka 'wires'.
@@ -95,7 +95,7 @@ public class GeckoDriverService extends FirefoxDriverService {
   }
 
   @Override
-  protected void waitUntilAvailable() throws MalformedURLException {
+  protected void waitUntilAvailable() {
     PortProber.waitForPortUp(getUrl().getPort(), 20, SECONDS);
   }
 
@@ -107,7 +107,7 @@ public class GeckoDriverService extends FirefoxDriverService {
   /**
    * Builder used to configure new {@link GeckoDriverService} instances.
    */
-  @AutoService(FirefoxDriverService.Builder.class)
+  @AutoService(DriverService.Builder.class)
   public static class Builder extends FirefoxDriverService.Builder<
         GeckoDriverService, GeckoDriverService.Builder> {
 
@@ -116,35 +116,25 @@ public class GeckoDriverService extends FirefoxDriverService {
     public Builder() {
     }
 
-    /**
-     * @param binary - A custom location where the Firefox binary is available.
-     *
-     * @deprecated Use method usingFirefoxBinary instead
-     */
-    @Deprecated
-    public Builder(FirefoxBinary binary) {
-      this.firefoxBinary = binary;
-    }
-
     @Override
     protected boolean isLegacy() {
       return false;
     }
 
     @Override
-    public int score(Capabilities capabilites) {
-      if (capabilites.getCapability(FirefoxDriver.MARIONETTE) != null
-          && ! capabilites.is(FirefoxDriver.MARIONETTE)) {
+    public int score(Capabilities capabilities) {
+      if (capabilities.getCapability(FirefoxDriver.MARIONETTE) != null
+          && ! capabilities.is(FirefoxDriver.MARIONETTE)) {
         return 0;
       }
 
-      int score = 1;
+      int score = 0;
 
-      if (BrowserType.FIREFOX.equals(capabilites.getBrowserName())) {
+      if (BrowserType.FIREFOX.equals(capabilities.getBrowserName())) {
         score++;
       }
 
-      if (capabilites.getCapability(FirefoxOptions.FIREFOX_OPTIONS) != null) {
+      if (capabilities.getCapability(FirefoxOptions.FIREFOX_OPTIONS) != null) {
         score++;
       }
 
@@ -204,12 +194,10 @@ public class GeckoDriverService extends FirefoxDriverService {
           } else if ("/dev/null".equals(firefoxLogFile)) {
             service.sendOutputTo(ByteStreams.nullOutputStream());
           } else {
-            // TODO: The stream is leaked.
             service.sendOutputTo(new FileOutputStream(firefoxLogFile));
           }
         } else {
           if (getLogFile() != null) {
-            // TODO: This stream is leaked.
             service.sendOutputTo(new FileOutputStream(getLogFile()));
           } else {
             service.sendOutputTo(System.err);

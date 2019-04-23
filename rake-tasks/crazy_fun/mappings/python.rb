@@ -128,29 +128,17 @@ module Python
 	      py_home = "py/"
 	      remote_py_home = py_home + "selenium/webdriver/remote/"
 	      firefox_py_home = py_home + "selenium/webdriver/firefox/"
-	      firefox_build_dir = 'build/javascript/firefox-driver/'
-	      x86 = firefox_py_home + "x86/"
-	      amd64 = firefox_py_home + "amd64/"
 
 	      if (windows?) then
-		      py_home = amd64.gsub(/\//,"\\")
 		      remote_py_home = remote_py_home.gsub(/\//, "\\")
-		      firefox_build_dir = firefox_build_dir.gsub(/\//, "\\")
 		      firefox_py_home = firefox_py_home .gsub(/\//, "\\")
-		      x86 = x86.gsub(/\//,"\\")
-		      amd64 = amd64.gsub(/\//,"\\")
 	      end
 
-	      mkdir_p x86 unless File.exists?(x86)
-	      mkdir_p amd64 unless File.exists?(amd64)
-
-	      cp Rake::Task['//cpp:noblur'].out, x86+"x_ignore_nofocus.so", :verbose => true
-	      cp Rake::Task['//cpp:noblur64'].out, amd64+"x_ignore_nofocus.so", :verbose => true
 	      cp Rake::Task['//javascript/atoms/fragments:is-displayed'].out, remote_py_home+"isDisplayed.js", :verbose => true
 	      cp Rake::Task['//javascript/webdriver/atoms:get-attribute'].out, remote_py_home+"getAttribute.js", :verbose => true
 
-	      cp Rake::Task['//javascript/firefox-driver:webdriver'].out, firefox_py_home, :verbose => true
-	      cp Rake::Task['//javascript/firefox-driver:webdriver_prefs'].out, firefox_py_home+"webdriver_prefs.json", :verbose => true
+	      cp Rake::Task['//third_party/js/selenium:webdriver'].out, firefox_py_home, :verbose => true
+	      cp Rake::Task['//third_party/js/selenium:webdriver_prefs'].out, firefox_py_home+"webdriver_prefs.json", :verbose => true
 	      cp "LICENSE", py_home + "LICENSE", :verbose => true
       end
     end

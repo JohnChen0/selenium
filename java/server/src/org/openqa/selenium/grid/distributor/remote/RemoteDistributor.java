@@ -23,13 +23,12 @@ import static org.openqa.selenium.remote.http.HttpMethod.GET;
 import static org.openqa.selenium.remote.http.HttpMethod.POST;
 
 import org.openqa.selenium.SessionNotCreatedException;
-import org.openqa.selenium.grid.data.Session;
+import org.openqa.selenium.grid.data.CreateSessionResponse;
+import org.openqa.selenium.grid.data.DistributorStatus;
 import org.openqa.selenium.grid.distributor.Distributor;
-import org.openqa.selenium.grid.distributor.DistributorStatus;
 import org.openqa.selenium.grid.node.Node;
 import org.openqa.selenium.grid.web.Values;
 import org.openqa.selenium.json.Json;
-import org.openqa.selenium.remote.NewSessionPayload;
 import org.openqa.selenium.remote.http.HttpClient;
 import org.openqa.selenium.remote.http.HttpRequest;
 import org.openqa.selenium.remote.http.HttpResponse;
@@ -37,6 +36,7 @@ import org.openqa.selenium.remote.tracing.DistributedTracer;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URL;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
@@ -46,10 +46,14 @@ public class RemoteDistributor extends Distributor {
   public static final Json JSON = new Json();
   private final Function<HttpRequest, HttpResponse> client;
 
-  public RemoteDistributor(DistributedTracer tracer, HttpClient client) {
-    super(tracer);
+  public RemoteDistributor(DistributedTracer tracer, HttpClient.Factory factory, URL url) {
+    super(tracer, factory);
 
-    Objects.requireNonNull(client);
+    Objects.requireNonNull(factory);
+    Objects.requireNonNull(url);
+
+    HttpClient client = factory.createClient(url);
+
     this.client = req -> {
       try {
         return client.execute(req);
@@ -60,29 +64,27 @@ public class RemoteDistributor extends Distributor {
   }
 
   @Override
-  public Session newSession(NewSessionPayload payload) throws SessionNotCreatedException {
-    HttpRequest request = new HttpRequest(POST, "/session");
-    StringBuilder builder = new StringBuilder();
-    try {
-      payload.writeTo(builder);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-    request.setContent(builder.toString().getBytes(UTF_8));
+  public CreateSessionResponse newSession(HttpRequest request)
+      throws SessionNotCreatedException {
+    HttpRequest upstream = new HttpRequest(POST, "/se/grid/distributor/session");
+    upstream.setContent(request.getContentString().getBytes(UTF_8));
 
-    HttpResponse response = client.apply(request);
+    HttpResponse response = client.apply(upstream);
 
-    return Values.get(response, Session.class);
+    return Values.get(response, CreateSessionResponse.class);
   }
 
   @Override
-  public void add(Node node) {
+  public RemoteDistributor add(Node node) {
     HttpRequest request = new HttpRequest(POST, "/se/grid/distributor/node");
-    request.setContent(JSON.toJson(node).getBytes(UTF_8));
+
+    request.setContent(JSON.toJson(node.getStatus()).getBytes(UTF_8));
 
     HttpResponse response = client.apply(request);
 
     Values.get(response, Void.class);
+
+    return this;
   }
 
   @Override
@@ -97,7 +99,7 @@ public class RemoteDistributor extends Distributor {
 
   @Override
   public DistributorStatus getStatus() {
-    HttpRequest request = new HttpRequest(GET, "/status");
+    HttpRequest request = new HttpRequest(GET, "/se/grid/distributor/status");
 
     HttpResponse response = client.apply(request);
 

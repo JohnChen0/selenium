@@ -20,7 +20,6 @@ package org.openqa.selenium.build;
 import static com.google.common.base.StandardSystemProperty.LINE_SEPARATOR;
 import static org.junit.Assert.assertTrue;
 import static org.openqa.selenium.Platform.WINDOWS;
-import static org.openqa.selenium.build.DevMode.isInDevMode;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
@@ -46,10 +45,10 @@ public class BuckBuild {
     return this;
   }
 
-  public Path go() throws IOException {
+  public Path go(boolean inDevMode) throws IOException {
     Path projectRoot = InProject.locate("Rakefile").getParent();
 
-    if (!isInDevMode()) {
+    if (!inDevMode) {
       // we should only need to do this when we're in dev mode
       // when running in a test suite, our dependencies should already
       // be listed.

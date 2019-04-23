@@ -20,21 +20,18 @@ package org.openqa.selenium.grid.server;
 import static com.google.common.net.MediaType.JSON_UTF_8;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.common.collect.ImmutableMap;
-
 import org.openqa.selenium.grid.web.CommandHandler;
+import org.openqa.selenium.grid.web.ErrorCodec;
 import org.openqa.selenium.json.Json;
-import org.openqa.selenium.remote.ErrorCodes;
 import org.openqa.selenium.remote.http.HttpRequest;
 import org.openqa.selenium.remote.http.HttpResponse;
 
-import java.io.IOException;
 import java.util.Objects;
 
 public class W3CCommandHandler implements CommandHandler {
 
   public static final Json JSON = new Json();
-  private final ErrorCodes errors = new ErrorCodes();
+  private final ErrorCodec errors = ErrorCodec.createDefault();
   private final CommandHandler delegate;
 
   public W3CCommandHandler(CommandHandler delegate) {
@@ -42,7 +39,7 @@ public class W3CCommandHandler implements CommandHandler {
   }
 
   @Override
-  public void execute(HttpRequest req, HttpResponse resp) throws IOException {
+  public void execute(HttpRequest req, HttpResponse resp) {
     // Assume we're executing a normal W3C WebDriver request
     resp.setHeader("Content-Type", JSON_UTF_8.toString());
     resp.setHeader("Cache-Control", "none");
@@ -50,16 +47,12 @@ public class W3CCommandHandler implements CommandHandler {
     try {
       delegate.execute(req, resp);
     } catch (Throwable cause) {
-      // Fair enough. Attempt to convert the exception to something useful.
       resp.setStatus(errors.getHttpStatusCode(cause));
 
       resp.setHeader("Content-Type", JSON_UTF_8.toString());
       resp.setHeader("Cache-Control", "none");
 
-      resp.setContent(JSON.toJson(
-          ImmutableMap.of(
-              "status", errors.toStatusCode(cause),
-              "value", cause)).getBytes(UTF_8));
+      resp.setContent(JSON.toJson(errors.encode(cause)).getBytes(UTF_8));
     }
   }
 }

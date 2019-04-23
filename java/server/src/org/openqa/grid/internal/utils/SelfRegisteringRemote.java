@@ -189,6 +189,7 @@ public class SelfRegisteringRemote {
       if (registerCycleInterval > 0) {
         new Thread(new Runnable() { // Thread safety reviewed
 
+          @Override
           public void run() {
             boolean first = true;
             LOG.info("Starting auto registration thread. Will try to register every "
@@ -384,7 +385,8 @@ public class SelfRegisteringRemote {
       if (id == null) {
         id = node.getConfiguration().getRemoteHost();
       }
-      HttpRequest request = new HttpRequest(GET, api.toExternalForm() + "?id=" + id);
+      HttpRequest request = new HttpRequest(GET, api.toExternalForm())
+          .addQueryParameter("id", id);
 
       HttpResponse response = client.execute(request);
       if (response.getStatus() != 200) {

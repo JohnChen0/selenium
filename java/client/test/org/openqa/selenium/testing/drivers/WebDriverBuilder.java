@@ -21,11 +21,14 @@ import com.google.common.collect.ImmutableMap;
 
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.ImmutableCapabilities;
+import org.openqa.selenium.Platform;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.ie.InternetExplorerOptions;
 import org.openqa.selenium.opera.OperaOptions;
+import org.openqa.selenium.remote.BrowserType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.safari.SafariOptions;
 
@@ -72,10 +75,10 @@ public class WebDriverBuilder implements Supplier<WebDriver> {
         }
         return options;
       })
-      .put(Browser.SAFARI, SafariOptions::new)
-      .put(Browser.HTMLUNIT, DesiredCapabilities::htmlUnit)
+      .put(Browser.EDGE, EdgeOptions::new)
+      .put(Browser.HTMLUNIT, () -> new DesiredCapabilities(BrowserType.HTMLUNIT, "", Platform.ANY))
       .put(Browser.OPERABLINK, OperaOptions::new)
-      .put(Browser.OPERA, () -> {
+      .put(Browser.SAFARI, () -> {
         SafariOptions options = new SafariOptions();
         if (Boolean.getBoolean("selenium.safari.tp")) {
           options.setUseTechnologyPreview(true);
@@ -98,6 +101,7 @@ public class WebDriverBuilder implements Supplier<WebDriver> {
     this.toBuild = Optional.ofNullable(toBuild).orElse(Browser.CHROME);
   }
 
+  @Override
   public WebDriver get() {
     return get(new ImmutableCapabilities());
   }
@@ -133,7 +137,6 @@ public class WebDriverBuilder implements Supplier<WebDriver> {
       LogLevel level = LogLevel.valueOf(value);
       setLogLevel.invoke(driver, level.getLevel());
     } catch (NoSuchMethodException e) {
-      return;
     } catch (IllegalAccessException | InvocationTargetException e) {
       throw new RuntimeException(e);
     }
