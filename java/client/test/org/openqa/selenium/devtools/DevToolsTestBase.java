@@ -23,9 +23,10 @@ import org.openqa.selenium.environment.InProcessTestEnvironment;
 import org.openqa.selenium.environment.TestEnvironment;
 import org.openqa.selenium.environment.webserver.AppServer;
 import org.openqa.selenium.testing.Pages;
+import org.openqa.selenium.testing.JUnit4TestBase;
 
 
-public abstract class DevToolsTestBase {
+public abstract class DevToolsTestBase extends JUnit4TestBase {
 
   DevTools devTools;
   protected TestEnvironment environment;
