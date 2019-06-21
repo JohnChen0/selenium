@@ -386,6 +386,7 @@ public class CookieImplementationTest extends JUnit4TestBase {
 
     Cookie retrieved = driver.manage().getCookieNamed("fish");
     assertThat(retrieved).isNotNull();
+    driver.manage().deleteAllCookies();
   }
 
   @Test
