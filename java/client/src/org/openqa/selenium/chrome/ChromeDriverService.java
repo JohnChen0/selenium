@@ -206,6 +206,7 @@ public class ChromeDriverService extends DriverService {
       if (whitelistedIps != null) {
         argsBuilder.add(String.format("--whitelisted-ips=%s", whitelistedIps));
       }
+      argsBuilder.add("--readable-timestamp");
 
       return argsBuilder.build();
     }
