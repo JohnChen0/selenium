@@ -172,6 +172,7 @@ public class WindowTest extends JUnit4TestBase {
 
     changeSizeTo(new Dimension(640, 398));
     enlargeBy(WebDriver.Window::fullscreen);
+    changeSizeTo(new Dimension(640, 398));
   }
 
   @SwitchToTopAfterTest
@@ -189,6 +190,7 @@ public class WindowTest extends JUnit4TestBase {
 
     driver.switchTo().frame("fourth");
     enlargeBy(WebDriver.Window::fullscreen);
+    changeSizeTo(new Dimension(640, 399));
   }
 
   @SwitchToTopAfterTest
@@ -206,6 +208,7 @@ public class WindowTest extends JUnit4TestBase {
 
     driver.switchTo().frame("iframe1-name");
     enlargeBy(WebDriver.Window::fullscreen);
+    changeSizeTo(new Dimension(640, 400));
   }
 
   private void changeSizeBy(int deltaX, int deltaY) {
