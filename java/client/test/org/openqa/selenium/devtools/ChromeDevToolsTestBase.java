@@ -20,6 +20,9 @@ package org.openqa.selenium.devtools;
 import org.junit.After;
 import org.junit.Before;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+
+import java.io.File;
 
 /**
  * Created by aohana
@@ -33,7 +36,13 @@ public abstract class ChromeDevToolsTestBase extends DevToolsTestBase {
 
     super.setUp();
 
-    chromeDriver = new ChromeDriver();
+    ChromeOptions options = new ChromeOptions();
+    String chromePath = System.getProperty("webdriver.chrome.binary");
+    if (chromePath != null) {
+      options.setBinary(new File(chromePath));
+    }
+
+    chromeDriver = new ChromeDriver(options);
     devTools = chromeDriver.getDevTools();
 
     devTools.createSession();
