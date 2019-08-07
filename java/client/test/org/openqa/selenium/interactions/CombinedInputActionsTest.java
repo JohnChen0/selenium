@@ -47,6 +47,7 @@ import org.openqa.selenium.testing.Ignore;
 import org.openqa.selenium.testing.JUnit4TestBase;
 import org.openqa.selenium.testing.NotYetImplemented;
 import org.openqa.selenium.testing.SwitchToTopAfterTest;
+import org.openqa.selenium.Dimension;
 
 import java.util.List;
 
@@ -228,10 +229,11 @@ public class CombinedInputActionsTest extends JUnit4TestBase {
     driver.get(pages.clickEventPage);
 
     WebElement element = driver.findElement(By.id("eventish"));
+    Dimension elementSize = element.getSize();
     Point location = element.getLocation();
 
     new Actions(driver)
-        .moveToElement(element, 20, 10)
+        .moveToElement(element, 20 - elementSize.getWidth()/2, 10 - elementSize.getHeight()/2)
         .click()
         .perform();
 

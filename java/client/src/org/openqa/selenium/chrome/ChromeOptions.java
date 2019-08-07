@@ -21,6 +21,7 @@ import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.chromium.ChromiumOptions;
 import org.openqa.selenium.remote.BrowserType;
 import org.openqa.selenium.remote.CapabilityType;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Class to manage options specific to {@link ChromeDriver}.
@@ -49,9 +50,39 @@ public class ChromeOptions extends ChromiumOptions<ChromeOptions> {
    * object.
    */
   public static final String CAPABILITY = "goog:chromeOptions";
+  private String androidPackage;
+  private String androidActivity;
+  private String androidProcess;
 
   public ChromeOptions() {
     super(CapabilityType.BROWSER_NAME, BrowserType.CHROME, CAPABILITY);
   }
 
+  /**
+   * Sets the Android package name for Chrome or a WebView app. The package should already exist
+   * on the Android device.
+   *
+   * @param package_name Package name for Chrome or a WebView app
+   */
+  public void setAndroidPackage(String package_name) {
+    androidPackage = checkNotNull(package_name);
+  }
+
+  /**
+   * Sets the name of the Activity hosting the WebView under test.
+   *
+   * @param package_name Android Activity class name
+   */
+  public void setAndroidActivity(String activity_name) {
+    androidActivity = checkNotNull(activity_name);
+  }
+
+  /**
+   * Sets the process name for the Activity hosting the WebView under test.
+   *
+   * @param package_name Android process name
+   */
+  public void setAndroidProcess(String process_name) {
+    androidProcess = checkNotNull(process_name);
+  }
 }

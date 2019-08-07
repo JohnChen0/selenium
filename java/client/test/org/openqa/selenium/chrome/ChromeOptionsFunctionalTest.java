@@ -55,6 +55,7 @@ public class ChromeOptionsFunctionalTest extends JUnit4TestBase {
   public void canStartChromeWithCustomOptions() {
     ChromeOptions options = new ChromeOptions();
     options.addArguments("user-agent=foo;bar");
+    setWebDriverChromeBinary(options);
     driver = new ChromeDriver(options);
 
     driver.get(pages.clickJacker);
@@ -77,6 +78,7 @@ public class ChromeOptionsFunctionalTest extends JUnit4TestBase {
   public void canSetAcceptInsecureCerts() {
     ChromeOptions options = new ChromeOptions();
     options.setAcceptInsecureCerts(true);
+    setWebDriverChromeBinary(options);
     driver = new ChromeDriver(options);
 
     assertThat(driver.getCapabilities().getCapability(ACCEPT_INSECURE_CERTS)).isEqualTo(true);
@@ -87,6 +89,7 @@ public class ChromeOptionsFunctionalTest extends JUnit4TestBase {
   public void canAddExtensionFromFile() {
     ChromeOptions options = new ChromeOptions();
     options.addExtensions(InProject.locate(EXT_PATH).toFile());
+    setWebDriverChromeBinary(options);
     driver = new ChromeDriver(options);
 
     driver.get(pages.clicksPage);
@@ -104,6 +107,7 @@ public class ChromeOptionsFunctionalTest extends JUnit4TestBase {
     ChromeOptions options = new ChromeOptions();
     options.addEncodedExtensions(Base64.getEncoder().encodeToString(
         Files.readAllBytes(InProject.locate(EXT_PATH))));
+    setWebDriverChromeBinary(options);
     driver = new ChromeDriver(options);
 
     driver.get(pages.clicksPage);
@@ -115,4 +119,10 @@ public class ChromeOptionsFunctionalTest extends JUnit4TestBase {
     new WebDriverWait(driver, 10).until(titleIs("clicks"));
   }
 
+  private void setWebDriverChromeBinary(ChromeOptions options) {
+    String chromePath = System.getProperty("webdriver.chrome.binary");
+    if (chromePath != null) {
+      options.setBinary(chromePath);
+    }
+  }
 }
