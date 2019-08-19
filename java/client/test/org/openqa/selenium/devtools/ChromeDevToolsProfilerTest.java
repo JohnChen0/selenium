@@ -103,7 +103,8 @@ public class ChromeDevToolsProfilerTest extends DevToolsTestBase {
     devTools.addListener(consoleProfileStarted(), Assert::assertNotNull);
     devTools.send(startTypeProfile());
     devTools.send(start());
-    driver.navigate().refresh();
+    // https://bugs.chromium.org/p/chromedriver/issues/detail?id=2532, 2971
+    // driver.navigate().refresh();
     devTools.addListener(consoleProfileFinished(), Assert::assertNotNull);
     devTools.send(stopTypeProfile());
     Profile profiler = devTools.send(stop());
