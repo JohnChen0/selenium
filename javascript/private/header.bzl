@@ -62,7 +62,7 @@ closure_lang_file = rule(
         ),
         "utf8": attr.bool(
           doc = "Generate utf8 or not. True will generate string and char."
-          "False, will generate wchar_t and wstring. Defaults to False",
+          + " False, will generate wchar_t and wstring. Defaults to False",
           default = False,
         ),
     },
