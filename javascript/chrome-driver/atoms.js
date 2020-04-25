@@ -211,7 +211,7 @@ webdriver.chrome.getFirstClientRect = function(elem) {
  * at the given location. Useful for debugging test clicking issues.
  *
  * @param {!Element} elem The element to use.
- * @param {!goog.math.Coordinate} coord The coordinate to use.
+ * @param {!Object} coord The coordinate to use.
  * @return {{clickable:boolean, message: (string|undefined)}} Object containing
  *     a boolean "clickable" property, as to whether it can be clicked, and an
  *     optional "message" string property, which contains any warning/error

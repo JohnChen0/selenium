@@ -33,6 +33,9 @@ def write_atom_literal(out, name, contents, lang):
     contents = contents.replace('"', '\\"')
 
     if "cc" == lang or "hh" == lang:
+      if utf8:
+        line_format = "    \"{}\",\n"
+      else:
         line_format = "    L\"{}\",\n"
     elif "java" == lang:
         line_format = "      .append\(\"{}\")\n"
@@ -42,7 +45,9 @@ def write_atom_literal(out, name, contents, lang):
     name = get_atom_name(name)
 
     if "cc" == lang or "hh" == lang:
-        out.write("const wchar_t* const %s[] = {\n" % name)
+        string_type = "std::string" if utf8 else "std::wstring"
+        char_type = "char" if utf8 else "wchar_t"
+        out.write("const %s* const %s[] = {\n" % (char_type, name))
     elif "java" == lang:
         out.write("  %s(new StringBuilder()\n" % name)
     else:
@@ -69,30 +74,31 @@ def write_atom_literal(out, name, contents, lang):
 
 def generate_header(file_name, out, js_map, just_declare):
     define_guard = "WEBDRIVER_%s" % os.path.basename(file_name.upper()).replace(".", "_")
+    include_stddef = "" if utf8 else "\n#include <stddef.h>  // For wchar_t."
 
     out.write("""%s
     
 /* AUTO GENERATED - DO NOT EDIT BY HAND */
 #ifndef %s
 #define %s
-
-#include <stddef.h>  // For wchar_t.
+%s
 #include <string>    // For std::(w)string.
 
 namespace webdriver {
 namespace atoms {
     
-""" % (_copyright, define_guard, define_guard))
+""" % (_copyright, define_guard, define_guard, include_stddef))
+
+    string_type = "std::string" if utf8 else "std::wstring"
+    char_type = "char" if utf8 else "wchar_t"
 
     for (name, file) in js_map.items():
         if just_declare:
-            out.write("extern const wchat_t* const %s[];\n" % name.upper())
+            out.write("extern const %s* const %s[];\n" % (char_type, name.upper()))
         else:
             contents = open(file, "r").read()
             write_atom_literal(out, name, contents, "hh")
 
-    string_type = "std::wstring"
-    char_type = "wchar_t"
     out.write("""
 static inline %s asString(const %s* const atom[]) {
   %s source;
@@ -168,14 +174,17 @@ public enum %s {
 }
 """ % class_name)
 
+utf8 = False
 
 def main(argv=[]):
     lang = argv[1]
     file_name = argv[2]
     preamble = argv[3]
+    global utf8
+    utf8 = (argv[4] == "true")
 
     js_map = {}
-    for i in range(4, len(argv), 2):
+    for i in range(5, len(argv), 2):
         js_map[argv[i]] = argv[i + 1]
 
     with open(file_name, "w") as out:
